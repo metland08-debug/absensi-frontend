@@ -1,3 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Absensi Linmas</title>
+</head>
+<body>
+
+<h2>Absensi</h2>
+
+<select id="petugas"></select>
+
+<select id="status">
+  <option value="MASUK">MASUK</option>
+  <option value="PULANG">PULANG</option>
+</select>
+
+<button onclick="tambahAbsensi()">Kirim Absensi</button>
+
 <script>
 const API = "https://absensi-backend-sc11.onrender.com";
 
@@ -35,3 +54,6 @@ async function tambahAbsensi() {
 
 loadPetugas();
 </script>
+
+</body>
+</html>
