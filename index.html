@@ -26,6 +26,12 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
+    .logo {
+      width: 100px;
+      display: block;
+      margin: 0 auto 15px auto;
+    }
+
     h1 {
       text-align: center;
       margin-bottom: 20px;
@@ -84,6 +90,10 @@
 
 <body>
   <div class="container">
+
+    <!-- LOGO -->
+    <img src="LOGO%20RT8%269.png" class="logo">
+
     <h1>Absensi Linmas</h1>
 
     <label>Nama Petugas</label>
@@ -100,7 +110,7 @@
     <div id="message" class="status-box"></div>
 
     <div class="footer">
-      Sistem Absensi RT © 2026
+      RT 08 & 09 Perumahan Metland Puri © 2026
     </div>
   </div>
 
@@ -139,12 +149,12 @@ async function tambahAbsensi() {
 
   const data = await res.json();
 
+  message.style.display = "block";
+
   if (res.ok) {
-    message.style.display = "block";
     message.className = "status-box success";
     message.textContent = "Absensi berhasil!";
   } else {
-    message.style.display = "block";
     message.className = "status-box error";
     message.textContent = data.error || "Terjadi kesalahan";
   }
