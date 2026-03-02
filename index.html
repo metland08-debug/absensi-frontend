@@ -1,58 +1,37 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Absensi Linmas</title>
-</head>
-<body>
+<script>
+const API = "https://absensi-backend-sc11.onrender.com";
 
-  <h1>Absensi Linmas</h1>
+async function loadPetugas() {
+  const res = await fetch(API + "/petugas");
+  const data = await res.json();
 
-  <h2>Daftar Petugas</h2>
-  <ul id="list-petugas"></ul>
+  const select = document.getElementById("petugas");
+  select.innerHTML = "";
 
-  <h2>Tambah Petugas</h2>
-  <input type="text" id="nama" placeholder="Nama">
-  <input type="text" id="no_hp" placeholder="No HP">
-  <button onclick="tambahPetugas()">Tambah</button>
+  data.forEach(p => {
+    const option = document.createElement("option");
+    option.value = p.id;
+    option.textContent = p.nama;
+    select.appendChild(option);
+  });
+}
 
-  <script>
-    const API = "https://absensi-backend-sc11.onrender.com";
+async function tambahAbsensi() {
+  const petugas_id = document.getElementById("petugas").value;
+  const status = document.getElementById("status").value;
 
-    async function loadPetugas() {
-      const res = await fetch(API + "/petugas");
-      const data = await res.json();
+  const now = new Date();
+  const tanggal = now.toISOString().split("T")[0];
+  const jam = now.toTimeString().split(" ")[0];
 
-      const list = document.getElementById("list-petugas");
-      list.innerHTML = "";
+  await fetch(API + "/absensi", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ petugas_id, tanggal, jam, status })
+  });
 
-      data.forEach(p => {
-        const li = document.createElement("li");
-        li.textContent = p.nama + (p.aktif ? " ✅" : " ❌");
-        list.appendChild(li);
-      });
-    }
+  alert("Absensi berhasil!");
+}
 
-    async function tambahPetugas() {
-      const nama = document.getElementById("nama").value;
-      const no_hp = document.getElementById("no_hp").value;
-
-      await fetch(API + "/petugas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ nama, no_hp })
-      });
-
-      document.getElementById("nama").value = "";
-      document.getElementById("no_hp").value = "";
-
-      loadPetugas();
-    }
-
-    loadPetugas();
-  </script>
-
-</body>
-</html>
+loadPetugas();
+</script>
