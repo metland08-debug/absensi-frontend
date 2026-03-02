@@ -3,19 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <title>Absensi Linmas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      color: #333;
+      width: 100%;
+      max-width: 450px;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2a5298;
+    }
+
+    select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      background: #2a5298;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #1e3c72;
+    }
+
+    .status-box {
+      margin-top: 15px;
+      padding: 10px;
+      text-align: center;
+      border-radius: 8px;
+      font-weight: bold;
+      display: none;
+    }
+
+    .success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: gray;
+    }
+  </style>
 </head>
+
 <body>
+  <div class="container">
+    <h1>Absensi Linmas</h1>
 
-<h2>Absensi</h2>
+    <label>Nama Petugas</label>
+    <select id="petugas"></select>
 
-<select id="petugas"></select>
+    <label>Status</label>
+    <select id="status">
+      <option value="MASUK">MASUK</option>
+      <option value="PULANG">PULANG</option>
+    </select>
 
-<select id="status">
-  <option value="MASUK">MASUK</option>
-  <option value="PULANG">PULANG</option>
-</select>
+    <button onclick="tambahAbsensi()">Kirim Absensi</button>
 
-<button onclick="tambahAbsensi()">Kirim Absensi</button>
+    <div id="message" class="status-box"></div>
+
+    <div class="footer">
+      Sistem Absensi RT © 2026
+    </div>
+  </div>
 
 <script>
 const API = "https://absensi-backend-sc11.onrender.com";
@@ -38,18 +125,29 @@ async function loadPetugas() {
 async function tambahAbsensi() {
   const petugas_id = document.getElementById("petugas").value;
   const status = document.getElementById("status").value;
+  const message = document.getElementById("message");
 
   const now = new Date();
   const tanggal = now.toISOString().split("T")[0];
   const jam = now.toTimeString().split(" ")[0];
 
-  await fetch(API + "/absensi", {
+  const res = await fetch(API + "/absensi", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ petugas_id, tanggal, jam, status })
   });
 
-  alert("Absensi berhasil!");
+  const data = await res.json();
+
+  if (res.ok) {
+    message.style.display = "block";
+    message.className = "status-box success";
+    message.textContent = "Absensi berhasil!";
+  } else {
+    message.style.display = "block";
+    message.className = "status-box error";
+    message.textContent = data.error || "Terjadi kesalahan";
+  }
 }
 
 loadPetugas();
