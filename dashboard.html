@@ -2,18 +2,23 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Login Admin - Absensi Linmas</title>
+<title>Admin - Absensi Linmas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  background: #f4f6f9;
+}
+
+/* LOGIN */
+.login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
 }
 
 .card {
@@ -27,7 +32,6 @@ body {
 
 h2 {
   text-align: center;
-  margin-bottom: 20px;
   color: #2a5298;
 }
 
@@ -58,61 +62,215 @@ button:hover {
   margin-top: 10px;
 }
 
-.footer {
-  text-align: center;
-  font-size: 12px;
-  margin-top: 15px;
-  color: gray;
+/* DASHBOARD */
+.dashboard {
+  display: none;
+  padding: 20px;
 }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logout-btn {
+  background: red;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: white;
+}
+
+th, td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #2a5298;
+  color: white;
+}
+
+.status-lengkap { color: green; font-weight: bold; }
+.status-masuk { color: orange; font-weight: bold; }
+.status-belum { color: red; font-weight: bold; }
+.status-libur { color: gray; font-weight: bold; }
+
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>Login Admin</h2>
-  <input type="text" id="username" placeholder="Username">
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-  <div class="error" id="error"></div>
-
-  <div class="footer">
-    Sistem Absensi Linmas RT 08 & 09
+<!-- LOGIN -->
+<div class="login-container" id="loginBox">
+  <div class="card">
+    <h2>Login Admin</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div class="error" id="error"></div>
   </div>
 </div>
 
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboardBox">
+  <div class="header">
+    <h2>Dashboard Absensi Hari Ini</h2>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <table id="tabel">
+    <thead>
+      <tr>
+        <th>Nama</th>
+        <th>Shift</th>
+        <th>Masuk</th>
+        <th>Pulang</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
 <script>
+const API = "https://absensi-backend-sc11.onrender.com";
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "linmas2026";
 
-// Jika sudah login, langsung ke dashboard
-if (sessionStorage.getItem("isAdmin") === "true") {
-  window.location.href = "dashboard.html";
-}
-
+/* ================= LOGIN ================= */
 function login() {
   const u = document.getElementById("username").value.trim();
   const p = document.getElementById("password").value.trim();
 
-  if (!u || !p) {
-    document.getElementById("error").innerText = "Isi username dan password";
-    return;
-  }
-
   if (u === ADMIN_USER && p === ADMIN_PASS) {
     sessionStorage.setItem("isAdmin", "true");
-    window.location.href = "dashboard.html";
+    showDashboard();
   } else {
     document.getElementById("error").innerText = "Username atau password salah";
   }
 }
 
-// Tekan Enter untuk login
-document.addEventListener("keypress", function(e) {
-  if (e.key === "Enter") {
-    login();
+function logout() {
+  sessionStorage.removeItem("isAdmin");
+  location.reload();
+}
+
+function showDashboard() {
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("dashboardBox").style.display = "block";
+  loadDashboard();
+}
+
+if (sessionStorage.getItem("isAdmin") === "true") {
+  showDashboard();
+}
+
+/* ================= LOGIKA DASHBOARD ================= */
+
+function getGlobalIndex() {
+  const startDate = new Date("2026-01-26");
+  const now = new Date();
+  const today = new Date(now);
+  today.setHours(0,0,0,0);
+
+  const diffTime = today.getTime() - startDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  return ((diffDays % 5) + 5) % 5;
+}
+
+function getTodayTanggal() {
+  const now = new Date();
+  const jam = now.getHours() + now.getMinutes()/60;
+
+  if (jam < 8) {
+    now.setDate(now.getDate() - 1);
   }
-});
+
+  return now.toISOString().split("T")[0];
+}
+
+async function loadDashboard() {
+  const petugasRes = await fetch(API + "/petugas");
+  const absensiRes = await fetch(API + "/absensi");
+
+  const petugas = await petugasRes.json();
+  const absensi = await absensiRes.json();
+
+  const globalIndex = getGlobalIndex();
+  const today = getTodayTanggal();
+
+  const shiftList = [
+    "Pagi 1",
+    "Pagi 2",
+    "Malam 1",
+    "Malam 2",
+    "LIBUR"
+  ];
+
+  const tbody = document.querySelector("#tabel tbody");
+  tbody.innerHTML = "";
+
+  petugas.forEach(p => {
+
+    const offset = p.siklus_offset || 0;
+    const petugasIndex = (globalIndex + offset) % 5;
+    const shift = shiftList[petugasIndex];
+
+    const absenHariIni = absensi.filter(a =>
+      a.nama === p.nama && a.tanggal === today
+    );
+
+    let masuk = "-";
+    let pulang = "-";
+    let statusText = "";
+    let statusClass = "";
+
+    if (petugasIndex === 4) {
+      statusText = "LIBUR";
+      statusClass = "status-libur";
+    } else {
+      absenHariIni.forEach(a => {
+        if (a.status === "MASUK") masuk = a.jam;
+        if (a.status === "PULANG") pulang = a.jam;
+      });
+
+      if (masuk !== "-" && pulang !== "-") {
+        statusText = "Lengkap";
+        statusClass = "status-lengkap";
+      } else if (masuk !== "-" && pulang === "-") {
+        statusText = "Sudah Masuk";
+        statusClass = "status-masuk";
+      } else {
+        statusText = "Belum Absen";
+        statusClass = "status-belum";
+      }
+    }
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${p.nama}</td>
+        <td>${shift}</td>
+        <td>${masuk}</td>
+        <td>${pulang}</td>
+        <td class="${statusClass}">${statusText}</td>
+      </tr>
+    `;
+  });
+}
+
+setInterval(loadDashboard, 30000);
 </script>
 
 </body>
