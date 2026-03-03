@@ -218,11 +218,12 @@ function tampilkanJadwal() {
   const startDate = new Date("2026-01-26");
   const now = new Date();
 
-  // Hitung selisih hari
-  const diffTime = now.setHours(0,0,0,0) - startDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const today = new Date(now);
+  today.setHours(0,0,0,0);
 
-  const index = ((diffDays % 5) + 5) % 5; // amankan dari negatif
+  const diffTime = today.getTime() - startDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const index = ((diffDays % 5) + 5) % 5;
 
   const shiftList = [
     "🟢 Pagi 1",
@@ -233,18 +234,32 @@ function tampilkanJadwal() {
   ];
 
   const shift = shiftList[index];
+  const jadwalBox = document.getElementById("jadwal-hari-ini");
+  const tombol = document.querySelector("button");
 
-  const hari = new Date().toLocaleDateString("id-ID", {
+  const hari = now.toLocaleDateString("id-ID", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric"
   });
 
-  document.getElementById("jadwal-hari-ini").innerHTML =
+  jadwalBox.innerHTML =
     "📅 " + hari + "<br>" +
     "🔄 Siklus ke: " + index + "<br>" +
     "📌 Jadwal Hari Ini: <b>" + shift + "</b>";
+
+  // Jika LIBUR
+  if (index === 4) {
+    tombol.disabled = true;
+    tombol.style.background = "#999";
+    jadwalBox.style.borderLeft = "5px solid gray";
+    jadwalBox.innerHTML += "<br><br>⚠ Hari ini LIBUR, tidak perlu absen.";
+  } else {
+    tombol.disabled = false;
+    tombol.style.background = "#2a5298";
+    jadwalBox.style.borderLeft = "5px solid #2a5298";
+  }
 }
 loadPetugas();
 loadRiwayat();
@@ -254,6 +269,7 @@ setInterval(tampilkanJadwal, 1000);
 
 </body>
 </html>
+
 
 
 
