@@ -8,99 +8,86 @@
 <style>
 body{
   margin:0;
-  font-family:'Segoe UI',Arial,sans-serif;
+  font-family:Arial, sans-serif;
   background:linear-gradient(135deg,#1e3c72,#2a5298);
   display:flex;
   justify-content:center;
-  padding:20px 10px;
+  padding:15px;
 }
-
 .container{
   background:white;
   width:100%;
-  max-width:420px;
+  max-width:450px;
   padding:20px;
-  border-radius:18px;
-  box-shadow:0 8px 25px rgba(0,0,0,0.25);
+  border-radius:15px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
 }
-
-.header{
+.logo{
+  width:90px;
+  display:block;
+  margin:0 auto 15px auto;
+}
+h1{
   text-align:center;
-  margin-bottom:15px;
-}
-
-.header h1{
-  margin:0;
-  font-size:20px;
   color:#2a5298;
+  font-size:20px;
 }
-
-.badge{
-  display:inline-block;
-  padding:4px 10px;
-  font-size:12px;
-  border-radius:20px;
-  background:#e3f2fd;
-  color:#1565c0;
-  margin-top:5px;
-}
-
-.box{
-  background:#f5f7ff;
-  padding:12px;
-  border-radius:10px;
+.jadwal-box{
+  background:#f0f4ff;
+  padding:10px;
+  border-radius:8px;
   margin-bottom:10px;
   font-size:14px;
+  border-left:4px solid #2a5298;
 }
-
+.jadwal-petugas-box{
+  background:#fff8e1;
+  padding:10px;
+  border-radius:8px;
+  margin-top:10px;
+  font-weight:bold;
+  border-left:4px solid #ff9800;
+}
 select,button{
   width:100%;
-  padding:14px;
+  padding:16px;
   margin-top:10px;
-  border-radius:10px;
-  font-size:15px;
-  border:1px solid #ddd;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:16px;
 }
-
 button{
   background:#2a5298;
   color:white;
   border:none;
-  font-weight:600;
-  transition:0.2s;
+  font-weight:bold;
 }
-
 button:disabled{
   background:#999;
 }
-
-button:hover:not(:disabled){
-  opacity:0.9;
-}
-
-video, img.preview{
-  width:100%;
-  border-radius:12px;
-  margin-top:12px;
-}
-
 .status-box{
   margin-top:12px;
   padding:10px;
+  text-align:center;
   border-radius:8px;
   font-weight:bold;
   display:none;
-  text-align:center;
 }
-
 .success{background:#d4edda;color:#155724;}
 .error{background:#f8d7da;color:#721c24;}
-
+.riwayat-item{
+  padding:6px;
+  margin-bottom:6px;
+  border-radius:6px;
+  font-size:13px;
+}
+.masuk{background:#d4edda;color:#155724;}
+.pulang{background:#f8d7da;color:#721c24;}
 .footer{
   text-align:center;
   margin-top:15px;
   font-size:12px;
-  color:#777;
+  color:gray;
 }
 </style>
 </head>
@@ -108,137 +95,154 @@ video, img.preview{
 <body>
 <div class="container">
 
-<div class="header">
-  <h1>Absensi Linmas</h1>
-  <div class="badge">RT 08 & 09 Metland Puri</div>
-</div>
+<img src="LOGO%20RT8%269.png" class="logo">
 
-<div id="jadwalGlobal" class="box"></div>
+<h1>Absensi Linmas</h1>
+
+<div id="jadwal-hari-ini" class="jadwal-box"></div>
 
 <select id="petugas">
 <option value="">-- Pilih Nama --</option>
 </select>
 
-<div id="jadwalPetugas" class="box"></div>
+<div id="jadwal-petugas" class="jadwal-petugas-box"></div>
 
 <select id="status">
 <option value="MASUK">MASUK</option>
 <option value="PULANG">PULANG</option>
 </select>
 
-<button id="btnMulai" onclick="mulaiAbsensi()">Mulai Absensi</button>
-
-<video id="video" autoplay playsinline style="display:none;"></video>
-<img id="preview" class="preview" style="display:none;"/>
-
-<button id="btnKirim" style="display:none;" onclick="kirimAbsensi()">Kirim Absensi</button>
+<button id="btnAbsen" onclick="tambahAbsensi()">Kirim Absensi</button>
 
 <div id="message" class="status-box"></div>
 
+<hr style="margin:15px 0">
+
+<h3 style="font-size:16px;">Riwayat Terakhir</h3>
+<div id="riwayat"></div>
+
 <div class="footer">
-© 2026 Sistem Absensi Linmas
+RT 08 & 09 Perumahan Metland Puri © 2026
 </div>
 
 </div>
 
 <script>
+
 const API="https://absensi-backend-sc11.onrender.com";
 const TARGET_LAT=-6.195772;
 const TARGET_LNG=106.709001;
-const RADIUS=50;
-
-let coords=null;
-let fotoBlob=null;
-let stream=null;
+const RADIUS_METERS=50;
 
 /* ================= LOAD PETUGAS ================= */
 async function loadPetugas(){
   const res=await fetch(API+"/petugas");
   const data=await res.json();
+
   const select=document.getElementById("petugas");
   select.innerHTML='<option value="">-- Pilih Nama --</option>';
+
   data.forEach(p=>{
-    const opt=document.createElement("option");
-    opt.value=p.id;
-    opt.textContent=p.nama;
-    opt.dataset.offset=p.siklus_offset ?? 0;
-    opt.dataset.backup=p.is_backup?"true":"false";
-    select.appendChild(opt);
+    const option=document.createElement("option");
+    option.value=p.id;
+    option.textContent=p.nama;
+    option.dataset.offset=p.siklus_offset ?? 0;
+    option.dataset.backup=p.is_backup ? "true" : "false";
+    select.appendChild(option);
   });
 }
 
-/* ================= GLOBAL SHIFT ================= */
+/* ================= SIKLUS GLOBAL ================= */
 function getGlobalIndex(){
-  const start=new Date("2026-01-26");
+  const startDate=new Date("2026-01-26");
   const today=new Date();
   today.setHours(0,0,0,0);
-  const diff=Math.floor((today-start)/(1000*60*60*24));
-  return ((diff%5)+5)%5;
+  const diffDays=Math.floor((today-startDate)/(1000*60*60*24));
+  return ((diffDays%5)+5)%5;
 }
 
-function tampilkanJadwalGlobal(){
-  const shift=["🟢 Pagi 1","🟢 Pagi 2","🌙 Malam 1","🌙 Malam 2","⚪ Libur"];
-  document.getElementById("jadwalGlobal").innerHTML=
-  "Jadwal Global Hari Ini: <b>"+shift[getGlobalIndex()]+"</b>";
+function tampilkanJadwal(){
+  const index=getGlobalIndex();
+  const shiftList=["🟢 Pagi 1","🟢 Pagi 2","🌙 Malam 1","🌙 Malam 2","⚪ Libur"];
+
+  document.getElementById("jadwal-hari-ini").innerHTML=
+  "📅 "+new Date().toLocaleDateString("id-ID")+
+  "<br>📌 Jadwal Global: <b>"+shiftList[index]+"</b>";
 }
 
-/* ================= UPDATE SHIFT PETUGAS ================= */
-function updateShift(){
+/* ================= JADWAL PETUGAS ================= */
+function updateJadwalPetugas(){
   const select=document.getElementById("petugas");
-  const box=document.getElementById("jadwalPetugas");
-  const btn=document.getElementById("btnMulai");
+  if(!select.value) return;
 
-  if(!select.value){ box.innerHTML=""; return;}
+  const selected=select.options[select.selectedIndex];
+  const offset=parseInt(selected.dataset.offset||0);
+  const isBackup=selected.dataset.backup==="true";
 
-  const offset=parseInt(select.selectedOptions[0].dataset.offset||0);
-  const backup=select.selectedOptions[0].dataset.backup==="true";
+  const box=document.getElementById("jadwal-petugas");
+  const tombol=document.getElementById("btnAbsen");
 
-  if(backup){
-    box.innerHTML="Status: 🟣 BACKUP";
-    btn.disabled=false;
+  if(isBackup){
+    box.innerHTML="Status: 🟣 BACKUP (Siap menggantikan)";
+    box.style.borderLeft="4px solid purple";
+    tombol.disabled=false;
+    tombol.style.background="#6a1b9a";
     return;
   }
 
-  const idx=(getGlobalIndex()+offset)%5;
-  const shift=["🟢 Pagi 1","🟢 Pagi 2","🌙 Malam 1","🌙 Malam 2","⚪ LIBUR"];
+  const globalIndex=getGlobalIndex();
+  const petugasIndex=(globalIndex+offset)%5;
 
-  box.innerHTML="Jadwal Anda: <b>"+shift[idx]+"</b>";
+  const shiftList=["🟢 Pagi 1","🟢 Pagi 2","🌙 Malam 1","🌙 Malam 2","⚪ LIBUR"];
+  const shift=shiftList[petugasIndex];
 
-  btn.disabled=(idx===4);
+  box.innerHTML="Jadwal Anda Hari Ini: "+shift;
+
+  if(petugasIndex===4){
+    tombol.disabled=true;
+    tombol.style.background="#999";
+  }else{
+    tombol.disabled=false;
+    tombol.style.background="#2a5298";
+  }
 }
 
-/* ================= JARAK ================= */
+/* ================= HITUNG JARAK ================= */
 function hitungJarak(lat1, lon1, lat2, lon2){
   const R=6371000;
   const dLat=(lat2-lat1)*Math.PI/180;
   const dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+
-          Math.cos(lat1*Math.PI/180)*
-          Math.cos(lat2*Math.PI/180)*
-          Math.sin(dLon/2)**2;
-  return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
+  const a=
+    Math.sin(dLat/2)*Math.sin(dLat/2)+
+    Math.cos(lat1*Math.PI/180)*
+    Math.cos(lat2*Math.PI/180)*
+    Math.sin(dLon/2)*Math.sin(dLon/2);
+  const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  return R*c;
 }
 
-/* ================= MULAI ABSENSI ================= */
-function mulaiAbsensi(){
+/* ================= ABSENSI ================= */
+async function tambahAbsensi(){
 
-  const petugas=document.getElementById("petugas").value;
+  const tombol=document.getElementById("btnAbsen");
+  const petugas_id=document.getElementById("petugas").value;
+  const status=document.getElementById("status").value;
   const message=document.getElementById("message");
 
-  if(!petugas){
+  if(!petugas_id){
     alert("Pilih nama terlebih dahulu");
     return;
   }
 
   message.style.display="block";
   message.className="status-box";
-  message.innerText="Validasi lokasi...";
+  message.textContent="Validasi lokasi...";
 
   navigator.geolocation.getCurrentPosition(async pos=>{
 
     if(pos.coords.accuracy>30){
       message.className="status-box error";
-      message.innerText="GPS tidak presisi.";
+      message.textContent="GPS tidak presisi.";
       return;
     }
 
@@ -249,95 +253,68 @@ function mulaiAbsensi(){
       TARGET_LNG
     );
 
-    if(jarak>RADIUS){
+    if(jarak>RADIUS_METERS){
       message.className="status-box error";
-      message.innerText="Di luar area POS 9.";
+      message.textContent="Anda di luar area POS 9!";
       return;
     }
 
-    coords=pos.coords;
-    message.innerText="Lokasi valid. Membuka kamera...";
+    tombol.disabled=true;
+    tombol.innerText="Mengirim...";
 
-    stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:"user"}
+    const res=await fetch(API+"/absensi",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({petugas_id,status})
     });
 
-    const video=document.getElementById("video");
-    video.srcObject=stream;
-    video.style.display="block";
-    video.onclick=ambilFoto;
+    const data=await res.json();
+
+    if(res.ok){
+      message.className="status-box success";
+      message.textContent="Absensi berhasil!";
+      loadRiwayat();
+    }else{
+      message.className="status-box error";
+      message.textContent=data.error||"Terjadi kesalahan";
+    }
+
+    tombol.disabled=false;
+    tombol.innerText="Kirim Absensi";
 
   },()=>{
     message.className="status-box error";
-    message.innerText="GPS harus aktif.";
+    message.textContent="GPS harus aktif!";
   });
 }
 
-/* ================= AMBIL FOTO ================= */
-function ambilFoto(){
-
-  const video=document.getElementById("video");
-  const canvas=document.createElement("canvas");
-
-  canvas.width=video.videoWidth;
-  canvas.height=video.videoHeight;
-  const ctx=canvas.getContext("2d");
-  ctx.drawImage(video,0,0);
-
-  const waktu=new Date().toLocaleString("id-ID");
-  ctx.fillStyle="rgba(0,0,0,0.6)";
-  ctx.fillRect(0,canvas.height-60,canvas.width,60);
-  ctx.fillStyle="white";
-  ctx.font="14px Arial";
-  ctx.fillText(
-    waktu+" | "+coords.latitude.toFixed(5)+", "+coords.longitude.toFixed(5),
-    10,
-    canvas.height-25
-  );
-
-  canvas.toBlob(blob=>{
-    fotoBlob=blob;
-    document.getElementById("preview").src=URL.createObjectURL(blob);
-    document.getElementById("preview").style.display="block";
-    document.getElementById("btnKirim").style.display="block";
-  },"image/jpeg",0.9);
-
-  stream.getTracks().forEach(t=>t.stop());
-  video.style.display="none";
-}
-
-/* ================= KIRIM ================= */
-async function kirimAbsensi(){
-
-  const message=document.getElementById("message");
-  message.innerText="Mengirim absensi...";
-
-  const formData=new FormData();
-  formData.append("petugas_id",document.getElementById("petugas").value);
-  formData.append("status",document.getElementById("status").value);
-  formData.append("latitude",coords.latitude);
-  formData.append("longitude",coords.longitude);
-  formData.append("accuracy",coords.accuracy);
-  formData.append("speed",coords.speed||0);
-  formData.append("device_info",navigator.userAgent);
-  formData.append("foto",fotoBlob,"selfie.jpg");
-
-  const res=await fetch(API+"/absensi",{method:"POST",body:formData});
+/* ================= RIWAYAT ================= */
+async function loadRiwayat(){
+  const res=await fetch(API+"/absensi");
   const data=await res.json();
 
-  if(res.ok){
-    message.className="status-box success";
-    message.innerText="Absensi berhasil!";
-  }else{
-    message.className="status-box error";
-    message.innerText=data.error||"Gagal absen.";
-  }
+  const riwayat=document.getElementById("riwayat");
+  riwayat.innerHTML="";
+
+  data.slice(0,20).forEach(item=>{
+    const div=document.createElement("div");
+    div.classList.add("riwayat-item");
+    div.classList.add(item.status==="MASUK"?"masuk":"pulang");
+    div.textContent=
+      item.nama+" - "+
+      item.tanggal.split("T")[0]+" "+
+      item.jam+" - "+
+      item.status;
+    riwayat.appendChild(div);
+  });
 }
 
 /* ================= INIT ================= */
-document.getElementById("petugas").addEventListener("change",updateShift);
+document.getElementById("petugas").addEventListener("change",updateJadwalPetugas);
 loadPetugas();
-tampilkanJadwalGlobal();
+loadRiwayat();
+tampilkanJadwal();
+
 </script>
 
 </body>
