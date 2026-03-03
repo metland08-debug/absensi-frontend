@@ -109,7 +109,7 @@
     <img src="LOGO%20RT8%269.png" class="logo">
 
     <h1>Absensi Linmas</h1>
-
+<div id="jadwal-hari-ini" style="margin-bottom:15px; font-weight:bold;"></div>
     <label>Nama Petugas</label>
     <select id="petugas"></select>
 
@@ -207,10 +207,36 @@ async function tambahAbsensi() {
     message.textContent = data.error || "Terjadi kesalahan";
   }
 }
+function tampilkanJadwal() {
+  const now = new Date();
 
+  const hari = now.toLocaleDateString("id-ID", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+
+  const jam = now.getHours();
+  let shift = "";
+
+  if (jam >= 6 && jam < 18) {
+    shift = "🟢 SHIFT PAGI";
+  } else {
+    shift = "🌙 SHIFT MALAM";
+  }
+
+  document.getElementById("jadwal-hari-ini").innerHTML =
+    "📅 " + hari + "<br>" +
+    "🕒 Jam: " + now.toLocaleTimeString("id-ID") + "<br>" +
+    shift;
+}
 loadPetugas();
 loadRiwayat();
+  tampilkanJadwal();
+setInterval(tampilkanJadwal, 1000);
 </script>
 
 </body>
 </html>
+
