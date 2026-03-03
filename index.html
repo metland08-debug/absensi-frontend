@@ -14,14 +14,25 @@
       justify-content: center;
       padding: 20px;
     }
-.jadwal-box {
-  background: #f0f4ff;
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 15px;
-  font-size: 14px;
-  border-left: 5px solid #2a5298;
-}
+
+    .jadwal-box {
+      background: #f0f4ff;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      border-left: 5px solid #2a5298;
+    }
+
+    .jadwal-petugas-box {
+      background: #fff8e1;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-weight: bold;
+      border-left: 5px solid #ff9800;
+    }
+
     .container {
       background: white;
       color: #333;
@@ -116,9 +127,15 @@
     <img src="LOGO%20RT8%269.png" class="logo">
 
     <h1>Absensi Linmas</h1>
-<div id="jadwal-hari-ini" class="jadwal-box"></div>    
+
+    <!-- Jadwal Global -->
+    <div id="jadwal-hari-ini" class="jadwal-box"></div>
+
     <label>Nama Petugas</label>
     <select id="petugas"></select>
+
+    <!-- Jadwal Spesifik Petugas -->
+    <div id="jadwal-petugas" class="jadwal-petugas-box"></div>
 
     <label>Status</label>
     <select id="status">
@@ -144,6 +161,7 @@
 <script>
 const API = "https://absensi-backend-sc11.onrender.com";
 
+/* ================= LOAD PETUGAS ================= */
 async function loadPetugas() {
   const res = await fetch(API + "/petugas");
   const data = await res.json();
@@ -155,10 +173,105 @@ async function loadPetugas() {
     const option = document.createElement("option");
     option.value = p.id;
     option.textContent = p.nama;
+    option.dataset.offset = p.siklus_offset || 0;
     select.appendChild(option);
   });
+
+  updateJadwalPetugas();
 }
 
+/* ================= HITUNG JADWAL GLOBAL ================= */
+function getGlobalIndex() {
+  const startDate = new Date("2026-01-26");
+  const now = new Date();
+  const today = new Date(now);
+  today.setHours(0,0,0,0);
+
+  const diffTime = today.getTime() - startDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  return ((diffDays % 5) + 5) % 5;
+}
+
+function tampilkanJadwal() {
+  const now = new Date();
+  const index = getGlobalIndex();
+
+  const shiftList = [
+    "🟢 Pagi 1",
+    "🟢 Pagi 2",
+    "🌙 Malam 1",
+    "🌙 Malam 2",
+    "⚪ Libur"
+  ];
+
+  const shift = shiftList[index];
+
+  document.getElementById("jadwal-hari-ini").innerHTML =
+    "📅 " + now.toLocaleDateString("id-ID") + "<br>" +
+    "📌 Jadwal Global: <b>" + shift + "</b>";
+}
+
+/* ================= JADWAL PER PETUGAS ================= */
+function updateJadwalPetugas() {
+  const select = document.getElementById("petugas");
+  const selected = select.options[select.selectedIndex];
+  if (!selected) return;
+
+  const offset = parseInt(selected.dataset.offset || 0);
+  const globalIndex = getGlobalIndex();
+  const petugasIndex = (globalIndex + offset) % 5;
+
+  const shiftList = [
+    "🟢 Pagi 1",
+    "🟢 Pagi 2",
+    "🌙 Malam 1",
+    "🌙 Malam 2",
+    "⚪ LIBUR"
+  ];
+
+  const shift = shiftList[petugasIndex];
+  const box = document.getElementById("jadwal-petugas");
+  const tombol = document.querySelector("button");
+
+  box.innerHTML = "Jadwal Anda Hari Ini: " + shift;
+
+  if (petugasIndex === 4) {
+    tombol.disabled = true;
+    tombol.style.background = "#999";
+  } else {
+    tombol.disabled = false;
+    tombol.style.background = "#2a5298";
+  }
+}
+
+/* ================= ABSENSI ================= */
+async function tambahAbsensi() {
+  const petugas_id = document.getElementById("petugas").value;
+  const status = document.getElementById("status").value;
+  const message = document.getElementById("message");
+
+  const res = await fetch(API + "/absensi", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ petugas_id, status })
+  });
+
+  const data = await res.json();
+
+  message.style.display = "block";
+
+  if (res.ok) {
+    message.className = "status-box success";
+    message.textContent = "Absensi berhasil!";
+    loadRiwayat();
+  } else {
+    message.className = "status-box error";
+    message.textContent = data.error || "Terjadi kesalahan";
+  }
+}
+
+/* ================= RIWAYAT ================= */
 async function loadRiwayat() {
   const res = await fetch(API + "/absensi");
   const data = await res.json();
@@ -186,90 +299,13 @@ async function loadRiwayat() {
   });
 }
 
-async function tambahAbsensi() {
-  const petugas_id = document.getElementById("petugas").value;
-  const status = document.getElementById("status").value;
-  const message = document.getElementById("message");
+/* ================= INIT ================= */
+document.getElementById("petugas").addEventListener("change", updateJadwalPetugas);
 
-  const now = new Date();
-  const tanggal = now.toISOString().split("T")[0];
-  const jam = now.toTimeString().split(" ")[0];
-
-  const res = await fetch(API + "/absensi", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ petugas_id, tanggal, jam, status })
-  });
-
-  const data = await res.json();
-
-  message.style.display = "block";
-
-  if (res.ok) {
-    message.className = "status-box success";
-    message.textContent = "Absensi berhasil!";
-    loadRiwayat(); // dipanggil setelah sukses
-  } else {
-    message.className = "status-box error";
-    message.textContent = data.error || "Terjadi kesalahan";
-  }
-}
-function tampilkanJadwal() {
-  const startDate = new Date("2026-01-26");
-  const now = new Date();
-
-  const today = new Date(now);
-  today.setHours(0,0,0,0);
-
-  const diffTime = today.getTime() - startDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  const index = ((diffDays % 5) + 5) % 5;
-
-  const shiftList = [
-    "🟢 Pagi 1",
-    "🟢 Pagi 2",
-    "🌙 Malam 1",
-    "🌙 Malam 2",
-    "⚪ Libur"
-  ];
-
-  const shift = shiftList[index];
-  const jadwalBox = document.getElementById("jadwal-hari-ini");
-  const tombol = document.querySelector("button");
-
-  const hari = now.toLocaleDateString("id-ID", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric"
-  });
-
-  jadwalBox.innerHTML =
-    "📅 " + hari + "<br>" +
-    "🔄 Siklus ke: " + index + "<br>" +
-    "📌 Jadwal Hari Ini: <b>" + shift + "</b>";
-
-  // Jika LIBUR
-  if (index === 4) {
-    tombol.disabled = true;
-    tombol.style.background = "#999";
-    jadwalBox.style.borderLeft = "5px solid gray";
-    jadwalBox.innerHTML += "<br><br>⚠ Hari ini LIBUR, tidak perlu absen.";
-  } else {
-    tombol.disabled = false;
-    tombol.style.background = "#2a5298";
-    jadwalBox.style.borderLeft = "5px solid #2a5298";
-  }
-}
 loadPetugas();
 loadRiwayat();
-  tampilkanJadwal();
-setInterval(tampilkanJadwal, 1000);
+tampilkanJadwal();
 </script>
 
 </body>
 </html>
-
-
-
-
