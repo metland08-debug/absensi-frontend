@@ -12,7 +12,7 @@ body{
   background:#f4f6f9;
 }
 
-/* LOGIN */
+/* ================= LOGIN ================= */
 .login-container{
   display:flex;
   justify-content:center;
@@ -62,7 +62,7 @@ button:hover{
   margin-top:10px;
 }
 
-/* DASHBOARD */
+/* ================= DASHBOARD ================= */
 .dashboard{
   display:none;
   padding:25px;
@@ -74,6 +74,11 @@ button:hover{
   align-items:center;
   flex-wrap:wrap;
   gap:10px;
+}
+
+.title-box{
+  display:flex;
+  flex-direction:column;
 }
 
 .dashboard-title{
@@ -89,6 +94,20 @@ button:hover{
 .action-buttons{
   display:flex;
   gap:10px;
+  flex-wrap:wrap;
+}
+
+.nav-btn{
+  background:#444;
+  padding:8px 14px;
+  border-radius:6px;
+  color:white;
+  text-decoration:none;
+  font-size:13px;
+}
+
+.nav-btn:hover{
+  background:#222;
 }
 
 .logout-btn{
@@ -169,11 +188,13 @@ th{
 <!-- DASHBOARD -->
 <div class="dashboard" id="dashboardBox">
   <div class="header">
-    <div>
+    <div class="title-box">
       <div class="dashboard-title">Dashboard Absensi</div>
       <div class="dashboard-date" id="tanggalHariIni"></div>
     </div>
+
     <div class="action-buttons">
+      <a href="rekap.html" class="nav-btn">Rekap Bulanan</a>
       <button class="export-btn" onclick="exportExcel()">Download Excel</button>
       <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
@@ -221,8 +242,7 @@ function logout(){
 async function showDashboard(){
   document.getElementById("loginBox").style.display="none";
   document.getElementById("dashboardBox").style.display="block";
-
-  await warmupServer();
+  await fetch(API+"/"); // warmup
   loadDashboard();
 }
 
@@ -230,26 +250,12 @@ if(sessionStorage.getItem("isAdmin")==="true"){
   showDashboard();
 }
 
-/* ================= WARMUP ================= */
-async function warmupServer(){
-  try{
-    await fetch(API + "/");
-  }catch(e){}
-}
-
-/* ================= TIMEZONE WIB ================= */
+/* ================= WIB ================= */
 function getNowWIB(){
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"}));
 }
 
-function getTodayTanggal(){
-  const now=getNowWIB();
-  const jam=now.getHours()+now.getMinutes()/60;
-  if(jam<8) now.setDate(now.getDate()-1);
-  return now.toISOString().split("T")[0];
-}
-
-function tampilkanTanggalHeader(){
+function tampilkanTanggal(){
   const now=getNowWIB();
   const formatted=now.toLocaleDateString("id-ID",{
     weekday:"long",
@@ -258,6 +264,13 @@ function tampilkanTanggalHeader(){
     year:"numeric"
   });
   document.getElementById("tanggalHariIni").innerText=formatted;
+}
+
+function getTodayTanggal(){
+  const now=getNowWIB();
+  const jam=now.getHours()+now.getMinutes()/60;
+  if(jam<8) now.setDate(now.getDate()-1);
+  return now.toISOString().split("T")[0];
 }
 
 /* ================= SIKLUS ================= */
@@ -269,13 +282,13 @@ function getGlobalIndex(){
   return ((diffDays%5)+5)%5;
 }
 
-/* ================= LOAD DASHBOARD ================= */
+/* ================= LOAD ================= */
 async function loadDashboard(){
 
-  tampilkanTanggalHeader();
+  tampilkanTanggal();
 
   const tbody=document.querySelector("#tabel tbody");
-  tbody.innerHTML=`<tr><td colspan="6" class="loading-row">Loading data...</td></tr>`;
+  tbody.innerHTML=`<tr><td colspan="6" class="loading-row">Loading...</td></tr>`;
 
   try{
 
@@ -355,12 +368,11 @@ async function loadDashboard(){
       `;
     });
 
-  }catch(error){
-    tbody.innerHTML=`<tr><td colspan="6" style="color:red;font-weight:bold;">Gagal mengambil data.</td></tr>`;
+  }catch(err){
+    tbody.innerHTML=`<tr><td colspan="6" style="color:red;font-weight:bold;">Gagal mengambil data</td></tr>`;
   }
 }
 
-/* ================= EXPORT ================= */
 function exportExcel(){
   const table=document.getElementById("tabel");
   let csv=[];
@@ -371,16 +383,13 @@ function exportExcel(){
     }
     csv.push(row.join(","));
   }
-
   const blob=new Blob([csv.join("\n")],{type:"text/csv"});
   const link=document.createElement("a");
   link.href=URL.createObjectURL(blob);
-  link.download="rekap_absensi_"+getTodayTanggal()+".csv";
+  link.download="rekap_harian.csv";
   link.click();
 }
 
-/* Keep server alive */
-setInterval(()=>{ fetch(API+"/"); },300000);
 setInterval(loadDashboard,30000);
 
 </script>
