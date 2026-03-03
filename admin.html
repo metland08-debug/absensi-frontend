@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Absensi Linmas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background: #2a5298;
+      color: white;
+    }
+
+    .status-lengkap { color: green; font-weight: bold; }
+    .status-masuk { color: orange; font-weight: bold; }
+    .status-belum { color: red; font-weight: bold; }
+    .status-libur { color: gray; font-weight: bold; }
+
+  </style>
+</head>
+
+<body>
+
+<h1>Dashboard Absensi Hari Ini</h1>
+
+<div class="card">
+  <table id="tabel">
+    <thead>
+      <tr>
+        <th>Nama</th>
+        <th>Shift</th>
+        <th>Masuk</th>
+        <th>Pulang</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+const API = "https://absensi-backend-sc11.onrender.com";
+
+function getGlobalIndex() {
+  const startDate = new Date("2026-01-26");
+  const now = new Date();
+  const today = new Date(now);
+  today.setHours(0,0,0,0);
+
+  const diffTime = today.getTime() - startDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  return ((diffDays % 5) + 5) % 5;
+}
+
+function getTodayTanggal() {
+  const now = new Date();
+  const jam = now.getHours() + now.getMinutes()/60;
+
+  if (jam < 8) {
+    now.setDate(now.getDate() - 1);
+  }
+
+  return now.toISOString().split("T")[0];
+}
+
+async function loadDashboard() {
+
+  const petugasRes = await fetch(API + "/petugas");
+  const absensiRes = await fetch(API + "/absensi");
+
+  const petugas = await petugasRes.json();
+  const absensi = await absensiRes.json();
+
+  const globalIndex = getGlobalIndex();
+  const today = getTodayTanggal();
+
+  const shiftList = [
+    "Pagi 1",
+    "Pagi 2",
+    "Malam 1",
+    "Malam 2",
+    "LIBUR"
+  ];
+
+  const tbody = document.querySelector("#tabel tbody");
+  tbody.innerHTML = "";
+
+  petugas.forEach(p => {
+
+    const offset = p.siklus_offset || 0;
+    const petugasIndex = (globalIndex + offset) % 5;
+    const shift = shiftList[petugasIndex];
+
+    const absenHariIni = absensi.filter(a =>
+      a.nama === p.nama && a.tanggal === today
+    );
+
+    let masuk = "-";
+    let pulang = "-";
+    let statusText = "";
+    let statusClass = "";
+
+    if (petugasIndex === 4) {
+      statusText = "LIBUR";
+      statusClass = "status-libur";
+    } else {
+
+      absenHariIni.forEach(a => {
+        if (a.status === "MASUK") masuk = a.jam;
+        if (a.status === "PULANG") pulang = a.jam;
+      });
+
+      if (masuk !== "-" && pulang !== "-") {
+        statusText = "Lengkap";
+        statusClass = "status-lengkap";
+      } else if (masuk !== "-" && pulang === "-") {
+        statusText = "Sudah Masuk";
+        statusClass = "status-masuk";
+      } else {
+        statusText = "Belum Absen";
+        statusClass = "status-belum";
+      }
+    }
+
+    const row = `
+      <tr>
+        <td>${p.nama}</td>
+        <td>${shift}</td>
+        <td>${masuk}</td>
+        <td>${pulang}</td>
+        <td class="${statusClass}">${statusText}</td>
+      </tr>
+    `;
+
+    tbody.innerHTML += row;
+  });
+}
+
+loadDashboard();
+setInterval(loadDashboard, 30000); // refresh tiap 30 detik
+
+</script>
+
+</body>
+</html>
