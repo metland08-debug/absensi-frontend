@@ -74,8 +74,22 @@ button:hover {
   align-items: center;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
 .logout-btn {
   background: red;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
+
+.export-btn {
+  background: green;
   padding: 8px 12px;
   border-radius: 6px;
   color: white;
@@ -126,7 +140,10 @@ th {
 <div class="dashboard" id="dashboardBox">
   <div class="header">
     <h2>Dashboard Absensi Hari Ini</h2>
-    <button class="logout-btn" onclick="logout()">Logout</button>
+    <div class="action-buttons">
+      <button class="export-btn" onclick="exportExcel()">Download Excel</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
   </div>
 
   <table id="tabel">
@@ -211,13 +228,7 @@ async function loadDashboard() {
   const globalIndex = getGlobalIndex();
   const today = getTodayTanggal();
 
-  const shiftList = [
-    "Pagi 1",
-    "Pagi 2",
-    "Malam 1",
-    "Malam 2",
-    "LIBUR"
-  ];
+  const shiftList = ["Pagi 1","Pagi 2","Malam 1","Malam 2","LIBUR"];
 
   const tbody = document.querySelector("#tabel tbody");
   tbody.innerHTML = "";
@@ -268,6 +279,27 @@ async function loadDashboard() {
       </tr>
     `;
   });
+}
+
+/* ================= EXPORT EXCEL ================= */
+
+function exportExcel() {
+  const table = document.getElementById("tabel");
+  let csv = [];
+
+  for (let i = 0; i < table.rows.length; i++) {
+    let row = [], cols = table.rows[i].cells;
+    for (let j = 0; j < cols.length; j++) {
+      row.push(cols[j].innerText);
+    }
+    csv.push(row.join(","));
+  }
+
+  const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "rekap_absensi_hari_ini.csv";
+  link.click();
 }
 
 setInterval(loadDashboard, 30000);
