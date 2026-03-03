@@ -76,11 +76,6 @@ button:hover{
   gap:10px;
 }
 
-.header-left{
-  display:flex;
-  flex-direction:column;
-}
-
 .dashboard-title{
   font-size:20px;
   font-weight:bold;
@@ -149,6 +144,12 @@ th{
   border-radius:4px;
   font-size:12px;
 }
+
+.loading-row{
+  padding:20px;
+  font-weight:bold;
+  color:#2a5298;
+}
 </style>
 </head>
 
@@ -168,7 +169,7 @@ th{
 <!-- DASHBOARD -->
 <div class="dashboard" id="dashboardBox">
   <div class="header">
-    <div class="header-left">
+    <div>
       <div class="dashboard-title">Dashboard Absensi</div>
       <div class="dashboard-date" id="tanggalHariIni"></div>
     </div>
@@ -217,14 +218,23 @@ function logout(){
   location.reload();
 }
 
-function showDashboard(){
+async function showDashboard(){
   document.getElementById("loginBox").style.display="none";
   document.getElementById("dashboardBox").style.display="block";
+
+  await warmupServer();
   loadDashboard();
 }
 
 if(sessionStorage.getItem("isAdmin")==="true"){
   showDashboard();
+}
+
+/* ================= WARMUP ================= */
+async function warmupServer(){
+  try{
+    await fetch(API + "/");
+  }catch(e){}
 }
 
 /* ================= TIMEZONE WIB ================= */
@@ -235,11 +245,7 @@ function getNowWIB(){
 function getTodayTanggal(){
   const now=getNowWIB();
   const jam=now.getHours()+now.getMinutes()/60;
-
-  if(jam<8){
-    now.setDate(now.getDate()-1);
-  }
-
+  if(jam<8) now.setDate(now.getDate()-1);
   return now.toISOString().split("T")[0];
 }
 
@@ -268,80 +274,90 @@ async function loadDashboard(){
 
   tampilkanTanggalHeader();
 
-  const petugasRes=await fetch(API+"/petugas");
-  const absensiRes=await fetch(API+"/absensi");
-
-  const petugas=await petugasRes.json();
-  const absensi=await absensiRes.json();
-
-  const globalIndex=getGlobalIndex();
-  const today=getTodayTanggal();
-  const shiftList=["Pagi 1","Pagi 2","Malam 1","Malam 2","LIBUR"];
-
   const tbody=document.querySelector("#tabel tbody");
-  tbody.innerHTML="";
+  tbody.innerHTML=`<tr><td colspan="6" class="loading-row">Loading data...</td></tr>`;
 
-  petugas.forEach(p=>{
+  try{
 
-    const offset=p.siklus_offset||0;
-    const petugasIndex=(globalIndex+offset)%5;
-    const shift=shiftList[petugasIndex];
+    const [petugasRes,absensiRes]=await Promise.all([
+      fetch(API+"/petugas"),
+      fetch(API+"/absensi")
+    ]);
 
-    const absenHariIni=absensi.filter(a =>
-      a.nama===p.nama && a.tanggal===today
-    );
+    const petugas=await petugasRes.json();
+    const absensi=await absensiRes.json();
 
-    let masuk="-";
-    let pulang="-";
-    let ijin=false;
-    let sakit=false;
+    const globalIndex=getGlobalIndex();
+    const today=getTodayTanggal();
+    const shiftList=["Pagi 1","Pagi 2","Malam 1","Malam 2","LIBUR"];
 
-    absenHariIni.forEach(a=>{
-      if(a.status==="MASUK") masuk=a.jam;
-      if(a.status==="PULANG") pulang=a.jam;
-      if(a.status==="IJIN") ijin=true;
-      if(a.status==="SAKIT") sakit=true;
+    tbody.innerHTML="";
+
+    petugas.forEach(p=>{
+
+      const offset=p.siklus_offset||0;
+      const petugasIndex=(globalIndex+offset)%5;
+      const shift=shiftList[petugasIndex];
+
+      const absenHariIni=absensi.filter(a =>
+        a.nama===p.nama && a.tanggal===today
+      );
+
+      let masuk="-";
+      let pulang="-";
+      let ijin=false;
+      let sakit=false;
+
+      absenHariIni.forEach(a=>{
+        if(a.status==="MASUK") masuk=a.jam;
+        if(a.status==="PULANG") pulang=a.jam;
+        if(a.status==="IJIN") ijin=true;
+        if(a.status==="SAKIT") sakit=true;
+      });
+
+      let statusText="";
+      let statusClass="";
+
+      if(petugasIndex===4 && !p.is_backup){
+        statusText="LIBUR";
+        statusClass="status-libur";
+      }
+      else if(ijin){
+        statusText="IJIN";
+        statusClass="status-ijin";
+      }
+      else if(sakit){
+        statusText="SAKIT";
+        statusClass="status-sakit";
+      }
+      else if(masuk!=="-" && pulang!=="-"){
+        statusText="Lengkap";
+        statusClass="status-lengkap";
+      }
+      else if(masuk!=="-" && pulang==="-"){
+        statusText="Sudah Masuk";
+        statusClass="status-masuk";
+      }
+      else{
+        statusText="Belum Absen";
+        statusClass="status-belum";
+      }
+
+      tbody.innerHTML+=`
+        <tr>
+          <td>${p.nama}</td>
+          <td>${p.is_backup ? '<span class="badge-backup">Backup</span>' : 'Reguler'}</td>
+          <td>${shift}</td>
+          <td>${masuk}</td>
+          <td>${pulang}</td>
+          <td class="${statusClass}">${statusText}</td>
+        </tr>
+      `;
     });
 
-    let statusText="";
-    let statusClass="";
-
-    if(petugasIndex===4 && !p.is_backup){
-      statusText="LIBUR";
-      statusClass="status-libur";
-    }
-    else if(ijin){
-      statusText="IJIN";
-      statusClass="status-ijin";
-    }
-    else if(sakit){
-      statusText="SAKIT";
-      statusClass="status-sakit";
-    }
-    else if(masuk!=="-" && pulang!=="-"){
-      statusText="Lengkap";
-      statusClass="status-lengkap";
-    }
-    else if(masuk!=="-" && pulang==="-"){
-      statusText="Sudah Masuk";
-      statusClass="status-masuk";
-    }
-    else{
-      statusText="Belum Absen";
-      statusClass="status-belum";
-    }
-
-    tbody.innerHTML+=`
-      <tr>
-        <td>${p.nama}</td>
-        <td>${p.is_backup ? '<span class="badge-backup">Backup</span>' : 'Reguler'}</td>
-        <td>${shift}</td>
-        <td>${masuk}</td>
-        <td>${pulang}</td>
-        <td class="${statusClass}">${statusText}</td>
-      </tr>
-    `;
-  });
+  }catch(error){
+    tbody.innerHTML=`<tr><td colspan="6" style="color:red;font-weight:bold;">Gagal mengambil data.</td></tr>`;
+  }
 }
 
 /* ================= EXPORT ================= */
@@ -363,9 +379,10 @@ function exportExcel(){
   link.click();
 }
 
+/* Keep server alive */
+setInterval(()=>{ fetch(API+"/"); },300000);
 setInterval(loadDashboard,30000);
 
 </script>
-
 </body>
 </html>
