@@ -50,7 +50,7 @@ h1{
   font-weight:bold;
   border-left:4px solid #ff9800;
 }
-select,button{
+select{
   width:100%;
   padding:16px;
   margin-top:10px;
@@ -58,15 +58,24 @@ select,button{
   border:1px solid #ccc;
   font-size:16px;
 }
+.button-group{
+  display:flex;
+  gap:10px;
+  margin-top:12px;
+}
 button{
-  background:#2a5298;
-  color:white;
+  flex:1;
+  padding:16px;
+  border-radius:8px;
   border:none;
+  font-size:16px;
   font-weight:bold;
+  color:white;
 }
-button:disabled{
-  background:#999;
-}
+#btnMasuk{ background:#2e7d32; }
+#btnPulang{ background:#c62828; }
+button:disabled{ background:#999; }
+
 .status-box{
   margin-top:12px;
   padding:10px;
@@ -77,6 +86,7 @@ button:disabled{
 }
 .success{background:#d4edda;color:#155724;}
 .error{background:#f8d7da;color:#721c24;}
+
 .footer{
   text-align:center;
   margin-top:15px;
@@ -101,12 +111,10 @@ button:disabled{
 
 <div id="jadwal-petugas" class="jadwal-petugas-box"></div>
 
-<select id="status">
-<option value="MASUK">MASUK</option>
-<option value="PULANG">PULANG</option>
-</select>
-
-<button id="btnAbsen" onclick="tambahAbsensi()">Kirim Absensi</button>
+<div id="tombol-absen" class="button-group" style="display:none;">
+  <button id="btnMasuk" onclick="tambahAbsensi('MASUK')">MASUK</button>
+  <button id="btnPulang" onclick="tambahAbsensi('PULANG')">PULANG</button>
+</div>
 
 <div id="message" class="status-box"></div>
 
@@ -123,19 +131,17 @@ const TARGET_LAT=-6.195772;
 const TARGET_LNG=106.709001;
 const RADIUS_METERS=50;
 
-/* ================= FORMAT TANGGAL WIB ================= */
+/* ================= FORMAT TANGGAL ================= */
 function tampilkanTanggal(){
   const now = new Date(
     new Date().toLocaleString("en-US",{ timeZone:"Asia/Jakarta" })
   );
-
   const formatted = now.toLocaleDateString("id-ID",{
     weekday:"long",
     day:"2-digit",
     month:"long",
     year:"numeric"
   });
-
   document.getElementById("tanggal").innerText = formatted;
 }
 
@@ -157,35 +163,38 @@ async function loadPetugas(){
   });
 }
 
-/* ================= SIKLUS GLOBAL ================= */
+/* ================= SIKLUS ================= */
 function getGlobalIndex(){
   const startDate = new Date("2026-01-26T00:00:00+07:00");
   const today = new Date(
     new Date().toLocaleString("en-US",{ timeZone:"Asia/Jakarta" })
   );
   today.setHours(0,0,0,0);
-
   const diffDays=Math.floor((today-startDate)/(1000*60*60*24));
   return ((diffDays%5)+5)%5;
 }
 
-/* ================= JADWAL PETUGAS ================= */
+/* ================= UPDATE JADWAL ================= */
 function updateJadwalPetugas(){
+
   const select=document.getElementById("petugas");
-  if(!select.value) return;
+  const box=document.getElementById("jadwal-petugas");
+  const tombolContainer=document.getElementById("tombol-absen");
+
+  if(!select.value){
+    box.innerHTML="";
+    tombolContainer.style.display="none";
+    return;
+  }
 
   const selected=select.options[select.selectedIndex];
   const offset=parseInt(selected.dataset.offset||0);
   const isBackup=selected.dataset.backup==="true";
 
-  const box=document.getElementById("jadwal-petugas");
-  const tombol=document.getElementById("btnAbsen");
-
   if(isBackup){
     box.innerHTML="Status: 🟣 BACKUP (Siap menggantikan)";
     box.style.borderLeft="4px solid purple";
-    tombol.disabled=false;
-    tombol.style.background="#6a1b9a";
+    tombolContainer.style.display="flex";
     return;
   }
 
@@ -198,11 +207,9 @@ function updateJadwalPetugas(){
   box.innerHTML="Jadwal Anda Hari Ini: "+shift;
 
   if(petugasIndex===4){
-    tombol.disabled=true;
-    tombol.style.background="#999";
+    tombolContainer.style.display="none";
   }else{
-    tombol.disabled=false;
-    tombol.style.background="#2a5298";
+    tombolContainer.style.display="flex";
   }
 }
 
@@ -221,17 +228,10 @@ function hitungJarak(lat1, lon1, lat2, lon2){
 }
 
 /* ================= ABSENSI ================= */
-async function tambahAbsensi(){
+async function tambahAbsensi(status){
 
-  const tombol=document.getElementById("btnAbsen");
   const petugas_id=document.getElementById("petugas").value;
-  const status=document.getElementById("status").value;
   const message=document.getElementById("message");
-
-  if(!petugas_id){
-    alert("Pilih nama terlebih dahulu");
-    return;
-  }
 
   message.style.display="block";
   message.className="status-box";
@@ -258,9 +258,6 @@ async function tambahAbsensi(){
       return;
     }
 
-    tombol.disabled=true;
-    tombol.innerText="Mengirim...";
-
     const res=await fetch(API+"/absensi",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
@@ -276,9 +273,6 @@ async function tambahAbsensi(){
       message.className="status-box error";
       message.textContent=data.error||"Terjadi kesalahan";
     }
-
-    tombol.disabled=false;
-    tombol.innerText="Kirim Absensi";
 
   },()=>{
     message.className="status-box error";
