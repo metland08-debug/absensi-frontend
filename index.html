@@ -153,7 +153,11 @@ async function loadPetugas(){
     const option=document.createElement("option");
     option.value=p.id;
     option.textContent=p.nama;
-    option.dataset.offset=p.siklus_offset||0;
+
+    // 🔵 SIMPAN OFFSET & BACKUP
+    option.dataset.offset = p.siklus_offset ?? 0;
+    option.dataset.backup = p.is_backup ? "true" : "false";
+
     select.appendChild(option);
   });
 
@@ -184,24 +188,42 @@ function tampilkanJadwal(){
 
 /* ================= JADWAL PETUGAS ================= */
 function updateJadwalPetugas(){
+
   const select=document.getElementById("petugas");
   const selected=select.options[select.selectedIndex];
   if(!selected) return;
 
   const offset=parseInt(selected.dataset.offset||0);
-  const index=(getGlobalIndex()+offset)%5;
-
-  const shiftList=["🟢 Pagi 1","🟢 Pagi 2","🌙 Malam 1","🌙 Malam 2","⚪ LIBUR"];
+  const isBackup=selected.dataset.backup==="true";
 
   const box=document.getElementById("jadwal-petugas");
   const tombol=document.getElementById("btnAbsen");
 
-  box.innerHTML="Jadwal Anda Hari Ini: "+shiftList[index];
+  // 🔵 BACKUP MODE
+  if(isBackup){
+    box.innerHTML="Status: 🟣 BACKUP (Siap menggantikan)";
+    box.style.borderLeft="4px solid purple";
+    tombol.disabled=false;
+    tombol.style.background="#6a1b9a";
+    return;
+  }
 
-  if(index===4){
+  const globalIndex=getGlobalIndex();
+  const petugasIndex=(globalIndex+offset)%5;
+
+  const shiftList=["🟢 Pagi 1","🟢 Pagi 2","🌙 Malam 1","🌙 Malam 2","⚪ LIBUR"];
+  const shift=shiftList[petugasIndex];
+
+  box.innerHTML="Jadwal Anda Hari Ini: "+shift;
+
+  if(petugasIndex===4){
     tombol.disabled=true;
+    tombol.style.background="#999";
+    box.style.borderLeft="4px solid gray";
   }else{
     tombol.disabled=false;
+    tombol.style.background="#2a5298";
+    box.style.borderLeft="4px solid #ff9800";
   }
 }
 
@@ -251,7 +273,7 @@ async function tambahAbsensi(){
   tombol.innerText="Kirim Absensi";
 }
 
-/* ================= RIWAYAT (LIMIT 20) ================= */
+/* ================= RIWAYAT ================= */
 async function loadRiwayat(){
   const res=await fetch(API+"/absensi");
   const data=await res.json();
@@ -259,9 +281,7 @@ async function loadRiwayat(){
   const riwayat=document.getElementById("riwayat");
   riwayat.innerHTML="";
 
-  const lastData=data.slice(0,20); // batasi 20 terakhir
-
-  lastData.forEach(item=>{
+  data.slice(0,20).forEach(item=>{
     const div=document.createElement("div");
     div.classList.add("riwayat-item");
     div.classList.add(item.status==="MASUK"?"masuk":"pulang");
