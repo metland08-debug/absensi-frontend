@@ -1,1 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Rekap Bulanan Linmas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<style>
+body{
+  margin:0;
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:#f4f6f9;
+}
+
+.container{
+  padding:20px;
+  max-width:1100px;
+  margin:auto;
+}
+
+h2{
+  color:#2a5298;
+}
+
+.filter-box{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:15px;
+}
+
+select,button{
+  padding:8px 12px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+
+button{
+  background:#2a5298;
+  color:white;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+}
+
+button:hover{
+  background:#1e3c72;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+}
+
+th,td{
+  padding:8px;
+  text-align:center;
+  border-bottom:1px solid #ddd;
+  font-size:13px;
+}
+
+th{
+  background:#2a5298;
+  color:white;
+}
+
+.clickable{
+  cursor:pointer;
+  font-weight:bold;
+  text-decoration:underline;
+}
+
+.modal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.modal-content{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  max-width:400px;
+  width:90%;
+}
+
+.close-btn{
+  float:right;
+  cursor:pointer;
+  font-weight:bold;
+  color:red;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Rekap Bulanan Linmas</h2>
+
+<div class="filter-box">
+  <select id="bulan"></select>
+  <select id="tahun"></select>
+  <button onclick="loadRekap()">Tampilkan</button>
+  <button onclick="exportCSV()">Export CSV</button>
+</div>
+
+<table id="tabel">
+<thead>
+<tr>
+  <th>Nama</th>
+  <th>Hadir</th>
+  <th>Ijin</th>
+  <th>Sakit</th>
+  <th>Alpha</th>
+  <th>Backup</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+</div>
+
+<!-- MODAL DETAIL -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeModal()">X</span>
+    <h3 id="modalTitle"></h3>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+
+const API="https://absensi-backend-sc11.onrender.com";
+
+let currentData=[];
+
+/* ================= INIT BULAN & TAHUN ================= */
+
+function initFilter(){
+  const bulanSelect=document.getElementById("bulan");
+  const tahunSelect=document.getElementById("tahun");
+
+  const bulanList=[
+    "Januari","Februari","Maret","April","Mei","Juni",
+    "Juli","Agustus","September","Oktober","November","Desember"
+  ];
+
+  bulanList.forEach((b,i)=>{
+    const opt=document.createElement("option");
+    opt.value=i+1;
+    opt.textContent=b;
+    bulanSelect.appendChild(opt);
+  });
+
+  const yearNow=new Date().getFullYear();
+  for(let y=yearNow-2;y<=yearNow+1;y++){
+    const opt=document.createElement("option");
+    opt.value=y;
+    opt.textContent=y;
+    tahunSelect.appendChild(opt);
+  }
+
+  bulanSelect.value=new Date().getMonth()+1;
+  tahunSelect.value=yearNow;
+}
+
+/* ================= LOAD REKAP ================= */
+
+async function loadRekap(){
+
+  const bulan=document.getElementById("bulan").value;
+  const tahun=document.getElementById("tahun").value;
+
+  const res=await fetch(API+`/rekap-bulanan?bulan=${bulan}&tahun=${tahun}`);
+  const data=await res.json();
+
+  currentData=data;
+
+  const tbody=document.querySelector("#tabel tbody");
+  tbody.innerHTML="";
+
+  data.forEach((p,index)=>{
+
+    tbody.innerHTML+=`
+      <tr>
+        <td>${p.nama}</td>
+        <td>${p.masuk}</td>
+        <td class="clickable" onclick="showDetail(${index},'ijin')">${p.ijin}</td>
+        <td class="clickable" onclick="showDetail(${index},'sakit')">${p.sakit}</td>
+        <td class="clickable" onclick="showDetail(${index},'alpha')">${p.alpha}</td>
+        <td class="clickable" onclick="showDetail(${index},'backup')">${p.backup}</td>
+      </tr>
+    `;
+  });
+}
+
+/* ================= DETAIL MODAL ================= */
+
+function showDetail(index,type){
+
+  const p=currentData[index];
+  let list=[];
+
+  if(type==="ijin") list=p.tanggal_ijin;
+  if(type==="sakit") list=p.tanggal_sakit;
+  if(type==="alpha") list=p.tanggal_alpha;
+  if(type==="backup") list=p.tanggal_backup;
+
+  document.getElementById("modalTitle").innerText=
+    p.nama+" - "+type.toUpperCase();
+
+  document.getElementById("modalBody").innerHTML=
+    list.length>0 ? list.join("<br>") : "Tidak ada";
+
+  document.getElementById("modal").style.display="flex";
+}
+
+function closeModal(){
+  document.getElementById("modal").style.display="none";
+}
+
+/* ================= EXPORT CSV ================= */
+
+function exportCSV(){
+
+  let csv=["Nama,Hadir,Ijin,Sakit,Alpha,Backup"];
+
+  currentData.forEach(p=>{
+    csv.push(`${p.nama},${p.masuk},${p.ijin},${p.sakit},${p.alpha},${p.backup}`);
+  });
+
+  const blob=new Blob([csv.join("\n")],{type:"text/csv"});
+  const link=document.createElement("a");
+  link.href=URL.createObjectURL(blob);
+  link.download="rekap_bulanan.csv";
+  link.click();
+}
+
+initFilter();
+loadRekap();
+
+</script>
+</body>
+</html>
