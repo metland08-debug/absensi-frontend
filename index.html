@@ -215,28 +215,36 @@ async function tambahAbsensi() {
   }
 }
 function tampilkanJadwal() {
+  const startDate = new Date("2026-01-26");
   const now = new Date();
 
-  const hari = now.toLocaleDateString("id-ID", {
+  // Hitung selisih hari
+  const diffTime = now.setHours(0,0,0,0) - startDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  const index = ((diffDays % 5) + 5) % 5; // amankan dari negatif
+
+  const shiftList = [
+    "🟢 Pagi 1",
+    "🟢 Pagi 2",
+    "🌙 Malam 1",
+    "🌙 Malam 2",
+    "⚪ Libur"
+  ];
+
+  const shift = shiftList[index];
+
+  const hari = new Date().toLocaleDateString("id-ID", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric"
   });
 
-  const jam = now.getHours();
-  let shift = "";
-
-  if (jam >= 6 && jam < 18) {
-    shift = "🟢 SHIFT PAGI";
-  } else {
-    shift = "🌙 SHIFT MALAM";
-  }
-
   document.getElementById("jadwal-hari-ini").innerHTML =
     "📅 " + hari + "<br>" +
-    "🕒 Jam: " + now.toLocaleTimeString("id-ID") + "<br>" +
-    shift;
+    "🔄 Siklus ke: " + index + "<br>" +
+    "📌 Jadwal Hari Ini: <b>" + shift + "</b>";
 }
 loadPetugas();
 loadRiwayat();
@@ -246,5 +254,6 @@ setInterval(tampilkanJadwal, 1000);
 
 </body>
 </html>
+
 
 
