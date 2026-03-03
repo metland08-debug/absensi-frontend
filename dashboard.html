@@ -9,7 +9,7 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #f4f6f9;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -18,23 +18,26 @@ body {
 
 .card {
   background: white;
-  padding: 25px;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   width: 100%;
   max-width: 400px;
 }
 
 h2 {
   text-align: center;
+  margin-bottom: 20px;
+  color: #2a5298;
 }
 
 input, button {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-top: 10px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid #ccc;
+  font-size: 14px;
 }
 
 button {
@@ -42,6 +45,7 @@ button {
   color: white;
   border: none;
   cursor: pointer;
+  font-weight: bold;
 }
 
 button:hover {
@@ -53,26 +57,47 @@ button:hover {
   text-align: center;
   margin-top: 10px;
 }
+
+.footer {
+  text-align: center;
+  font-size: 12px;
+  margin-top: 15px;
+  color: gray;
+}
 </style>
 </head>
 
 <body>
 
-<div class="card" id="loginBox">
+<div class="card">
   <h2>Login Admin</h2>
   <input type="text" id="username" placeholder="Username">
   <input type="password" id="password" placeholder="Password">
   <button onclick="login()">Login</button>
   <div class="error" id="error"></div>
+
+  <div class="footer">
+    Sistem Absensi Linmas RT 08 & 09
+  </div>
 </div>
 
 <script>
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "linmas2026";
 
+// Jika sudah login, langsung ke dashboard
+if (sessionStorage.getItem("isAdmin") === "true") {
+  window.location.href = "dashboard.html";
+}
+
 function login() {
-  const u = document.getElementById("username").value;
-  const p = document.getElementById("password").value;
+  const u = document.getElementById("username").value.trim();
+  const p = document.getElementById("password").value.trim();
+
+  if (!u || !p) {
+    document.getElementById("error").innerText = "Isi username dan password";
+    return;
+  }
 
   if (u === ADMIN_USER && p === ADMIN_PASS) {
     sessionStorage.setItem("isAdmin", "true");
@@ -81,6 +106,13 @@ function login() {
     document.getElementById("error").innerText = "Username atau password salah";
   }
 }
+
+// Tekan Enter untuk login
+document.addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    login();
+  }
+});
 </script>
 
 </body>
