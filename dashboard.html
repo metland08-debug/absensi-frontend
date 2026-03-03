@@ -6,120 +6,149 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f4f6f9;
+body{
+  margin:0;
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:#f4f6f9;
 }
 
 /* LOGIN */
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
+.login-container{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
 }
 
-.card {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  width: 100%;
-  max-width: 400px;
+.card{
+  background:white;
+  padding:30px;
+  border-radius:14px;
+  box-shadow:0 12px 30px rgba(0,0,0,0.25);
+  width:100%;
+  max-width:400px;
 }
 
-h2 {
-  text-align: center;
-  color: #2a5298;
+h2{
+  text-align:center;
+  color:#2a5298;
 }
 
-input, button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 14px;
+input,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:14px;
 }
 
-button {
-  background: #2a5298;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
+button{
+  background:#2a5298;
+  color:white;
+  border:none;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-button:hover {
-  background: #1e3c72;
+button:hover{
+  background:#1e3c72;
 }
 
-.error {
-  color: red;
-  text-align: center;
-  margin-top: 10px;
+.error{
+  color:red;
+  text-align:center;
+  margin-top:10px;
 }
 
 /* DASHBOARD */
-.dashboard {
-  display: none;
-  padding: 20px;
+.dashboard{
+  display:none;
+  padding:25px;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 10px;
+.header-left{
+  display:flex;
+  flex-direction:column;
 }
 
-.logout-btn {
-  background: red;
-  padding: 8px 12px;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-  border: none;
+.dashboard-title{
+  font-size:20px;
+  font-weight:bold;
 }
 
-.export-btn {
-  background: green;
-  padding: 8px 12px;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-  border: none;
+.dashboard-date{
+  font-size:14px;
+  color:#555;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  background: white;
+.action-buttons{
+  display:flex;
+  gap:10px;
 }
 
-th, td {
-  padding: 10px;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
+.logout-btn{
+  background:red;
+  padding:8px 14px;
+  border-radius:6px;
+  color:white;
+  border:none;
+  cursor:pointer;
 }
 
-th {
-  background: #2a5298;
-  color: white;
+.export-btn{
+  background:green;
+  padding:8px 14px;
+  border-radius:6px;
+  color:white;
+  border:none;
+  cursor:pointer;
 }
 
-.status-lengkap { color: green; font-weight: bold; }
-.status-masuk { color: orange; font-weight: bold; }
-.status-belum { color: red; font-weight: bold; }
-.status-libur { color: gray; font-weight: bold; }
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:20px;
+  background:white;
+  border-radius:10px;
+  overflow:hidden;
+}
 
+th,td{
+  padding:12px;
+  text-align:center;
+  border-bottom:1px solid #ddd;
+  font-size:14px;
+}
+
+th{
+  background:#2a5298;
+  color:white;
+}
+
+.status-lengkap{color:green;font-weight:bold;}
+.status-masuk{color:orange;font-weight:bold;}
+.status-belum{color:red;font-weight:bold;}
+.status-libur{color:gray;font-weight:bold;}
+.status-ijin{color:#f9a825;font-weight:bold;}
+.status-sakit{color:#6a1b9a;font-weight:bold;}
+
+.badge-backup{
+  background:purple;
+  color:white;
+  padding:3px 6px;
+  border-radius:4px;
+  font-size:12px;
+}
 </style>
 </head>
 
@@ -139,7 +168,10 @@ th {
 <!-- DASHBOARD -->
 <div class="dashboard" id="dashboardBox">
   <div class="header">
-    <h2>Dashboard Absensi Hari Ini</h2>
+    <div class="header-left">
+      <div class="dashboard-title">Dashboard Absensi</div>
+      <div class="dashboard-date" id="tanggalHariIni"></div>
+    </div>
     <div class="action-buttons">
       <button class="export-btn" onclick="exportExcel()">Download Excel</button>
       <button class="logout-btn" onclick="logout()">Logout</button>
@@ -150,6 +182,7 @@ th {
     <thead>
       <tr>
         <th>Nama</th>
+        <th>Tipe</th>
         <th>Shift</th>
         <th>Masuk</th>
         <th>Pulang</th>
@@ -161,117 +194,147 @@ th {
 </div>
 
 <script>
-const API = "https://absensi-backend-sc11.onrender.com";
-const ADMIN_USER = "admin";
-const ADMIN_PASS = "linmas2026";
+
+const API="https://absensi-backend-sc11.onrender.com";
+const ADMIN_USER="admin";
+const ADMIN_PASS="linmas2026";
 
 /* ================= LOGIN ================= */
-function login() {
-  const u = document.getElementById("username").value.trim();
-  const p = document.getElementById("password").value.trim();
+function login(){
+  const u=document.getElementById("username").value.trim();
+  const p=document.getElementById("password").value.trim();
 
-  if (u === ADMIN_USER && p === ADMIN_PASS) {
-    sessionStorage.setItem("isAdmin", "true");
+  if(u===ADMIN_USER && p===ADMIN_PASS){
+    sessionStorage.setItem("isAdmin","true");
     showDashboard();
-  } else {
-    document.getElementById("error").innerText = "Username atau password salah";
+  }else{
+    document.getElementById("error").innerText="Username atau password salah";
   }
 }
 
-function logout() {
+function logout(){
   sessionStorage.removeItem("isAdmin");
   location.reload();
 }
 
-function showDashboard() {
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("dashboardBox").style.display = "block";
+function showDashboard(){
+  document.getElementById("loginBox").style.display="none";
+  document.getElementById("dashboardBox").style.display="block";
   loadDashboard();
 }
 
-if (sessionStorage.getItem("isAdmin") === "true") {
+if(sessionStorage.getItem("isAdmin")==="true"){
   showDashboard();
 }
 
-/* ================= LOGIKA DASHBOARD ================= */
-
-function getGlobalIndex() {
-  const startDate = new Date("2026-01-26");
-  const now = new Date();
-  const today = new Date(now);
-  today.setHours(0,0,0,0);
-
-  const diffTime = today.getTime() - startDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  return ((diffDays % 5) + 5) % 5;
+/* ================= TIMEZONE WIB ================= */
+function getNowWIB(){
+  return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"}));
 }
 
-function getTodayTanggal() {
-  const now = new Date();
-  const jam = now.getHours() + now.getMinutes()/60;
+function getTodayTanggal(){
+  const now=getNowWIB();
+  const jam=now.getHours()+now.getMinutes()/60;
 
-  if (jam < 8) {
-    now.setDate(now.getDate() - 1);
+  if(jam<8){
+    now.setDate(now.getDate()-1);
   }
 
   return now.toISOString().split("T")[0];
 }
 
-async function loadDashboard() {
-  const petugasRes = await fetch(API + "/petugas");
-  const absensiRes = await fetch(API + "/absensi");
+function tampilkanTanggalHeader(){
+  const now=getNowWIB();
+  const formatted=now.toLocaleDateString("id-ID",{
+    weekday:"long",
+    day:"2-digit",
+    month:"long",
+    year:"numeric"
+  });
+  document.getElementById("tanggalHariIni").innerText=formatted;
+}
 
-  const petugas = await petugasRes.json();
-  const absensi = await absensiRes.json();
+/* ================= SIKLUS ================= */
+function getGlobalIndex(){
+  const startDate=new Date("2026-01-26T00:00:00+07:00");
+  const today=getNowWIB();
+  today.setHours(0,0,0,0);
+  const diffDays=Math.floor((today-startDate)/(1000*60*60*24));
+  return ((diffDays%5)+5)%5;
+}
 
-  const globalIndex = getGlobalIndex();
-  const today = getTodayTanggal();
+/* ================= LOAD DASHBOARD ================= */
+async function loadDashboard(){
 
-  const shiftList = ["Pagi 1","Pagi 2","Malam 1","Malam 2","LIBUR"];
+  tampilkanTanggalHeader();
 
-  const tbody = document.querySelector("#tabel tbody");
-  tbody.innerHTML = "";
+  const petugasRes=await fetch(API+"/petugas");
+  const absensiRes=await fetch(API+"/absensi");
 
-  petugas.forEach(p => {
+  const petugas=await petugasRes.json();
+  const absensi=await absensiRes.json();
 
-    const offset = p.siklus_offset || 0;
-    const petugasIndex = (globalIndex + offset) % 5;
-    const shift = shiftList[petugasIndex];
+  const globalIndex=getGlobalIndex();
+  const today=getTodayTanggal();
+  const shiftList=["Pagi 1","Pagi 2","Malam 1","Malam 2","LIBUR"];
 
-    const absenHariIni = absensi.filter(a =>
-      a.nama === p.nama && a.tanggal === today
+  const tbody=document.querySelector("#tabel tbody");
+  tbody.innerHTML="";
+
+  petugas.forEach(p=>{
+
+    const offset=p.siklus_offset||0;
+    const petugasIndex=(globalIndex+offset)%5;
+    const shift=shiftList[petugasIndex];
+
+    const absenHariIni=absensi.filter(a =>
+      a.nama===p.nama && a.tanggal===today
     );
 
-    let masuk = "-";
-    let pulang = "-";
-    let statusText = "";
-    let statusClass = "";
+    let masuk="-";
+    let pulang="-";
+    let ijin=false;
+    let sakit=false;
 
-    if (petugasIndex === 4) {
-      statusText = "LIBUR";
-      statusClass = "status-libur";
-    } else {
-      absenHariIni.forEach(a => {
-        if (a.status === "MASUK") masuk = a.jam;
-        if (a.status === "PULANG") pulang = a.jam;
-      });
+    absenHariIni.forEach(a=>{
+      if(a.status==="MASUK") masuk=a.jam;
+      if(a.status==="PULANG") pulang=a.jam;
+      if(a.status==="IJIN") ijin=true;
+      if(a.status==="SAKIT") sakit=true;
+    });
 
-      if (masuk !== "-" && pulang !== "-") {
-        statusText = "Lengkap";
-        statusClass = "status-lengkap";
-      } else if (masuk !== "-" && pulang === "-") {
-        statusText = "Sudah Masuk";
-        statusClass = "status-masuk";
-      } else {
-        statusText = "Belum Absen";
-        statusClass = "status-belum";
-      }
+    let statusText="";
+    let statusClass="";
+
+    if(petugasIndex===4 && !p.is_backup){
+      statusText="LIBUR";
+      statusClass="status-libur";
+    }
+    else if(ijin){
+      statusText="IJIN";
+      statusClass="status-ijin";
+    }
+    else if(sakit){
+      statusText="SAKIT";
+      statusClass="status-sakit";
+    }
+    else if(masuk!=="-" && pulang!=="-"){
+      statusText="Lengkap";
+      statusClass="status-lengkap";
+    }
+    else if(masuk!=="-" && pulang==="-"){
+      statusText="Sudah Masuk";
+      statusClass="status-masuk";
+    }
+    else{
+      statusText="Belum Absen";
+      statusClass="status-belum";
     }
 
-    tbody.innerHTML += `
+    tbody.innerHTML+=`
       <tr>
         <td>${p.nama}</td>
+        <td>${p.is_backup ? '<span class="badge-backup">Backup</span>' : 'Reguler'}</td>
         <td>${shift}</td>
         <td>${masuk}</td>
         <td>${pulang}</td>
@@ -281,28 +344,27 @@ async function loadDashboard() {
   });
 }
 
-/* ================= EXPORT EXCEL ================= */
-
-function exportExcel() {
-  const table = document.getElementById("tabel");
-  let csv = [];
-
-  for (let i = 0; i < table.rows.length; i++) {
-    let row = [], cols = table.rows[i].cells;
-    for (let j = 0; j < cols.length; j++) {
+/* ================= EXPORT ================= */
+function exportExcel(){
+  const table=document.getElementById("tabel");
+  let csv=[];
+  for(let i=0;i<table.rows.length;i++){
+    let row=[],cols=table.rows[i].cells;
+    for(let j=0;j<cols.length;j++){
       row.push(cols[j].innerText);
     }
     csv.push(row.join(","));
   }
 
-  const blob = new Blob([csv.join("\n")], { type: "text/csv" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "rekap_absensi_hari_ini.csv";
+  const blob=new Blob([csv.join("\n")],{type:"text/csv"});
+  const link=document.createElement("a");
+  link.href=URL.createObjectURL(blob);
+  link.download="rekap_absensi_"+getTodayTanggal()+".csv";
   link.click();
 }
 
-setInterval(loadDashboard, 30000);
+setInterval(loadDashboard,30000);
+
 </script>
 
 </body>
