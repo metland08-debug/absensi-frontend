@@ -8,7 +8,7 @@
 <style>
 body{
   margin:0;
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family:'Segoe UI',Arial,sans-serif;
   background:linear-gradient(135deg,#1e3c72,#2a5298);
   display:flex;
   justify-content:center;
@@ -19,30 +19,30 @@ body{
 .container{
   background:white;
   width:100%;
-  max-width:420px;
-  padding:25px;
-  border-radius:18px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.25);
+  max-width:430px;
+  padding:30px;
+  border-radius:20px;
+  box-shadow:0 12px 28px rgba(0,0,0,0.25);
 }
 
 .logo{
-  width:85px;
+  width:120px;
   display:block;
-  margin:0 auto 15px auto;
+  margin:0 auto 10px auto;
 }
 
 h1{
   text-align:center;
   color:#2a5298;
-  font-size:20px;
-  margin-bottom:15px;
+  font-size:22px;
+  margin-bottom:20px;
 }
 
 .tanggal-box{
-  background:#f0f4ff;
-  padding:12px;
-  border-radius:10px;
-  margin-bottom:15px;
+  background:#eef2ff;
+  padding:14px;
+  border-radius:12px;
+  margin-bottom:18px;
   font-weight:600;
   font-size:15px;
   text-align:center;
@@ -51,44 +51,43 @@ h1{
 
 select{
   width:100%;
-  padding:12px 14px;
-  margin-top:10px;
-  border-radius:8px;
+  padding:14px;
+  border-radius:10px;
   border:1px solid #ccc;
   font-size:15px;
-  background:white;
+  margin-bottom:12px;
 }
 
 .jadwal-petugas-box{
-  background:#fff8e1;
-  padding:12px;
-  border-radius:10px;
-  margin-top:12px;
+  background:#fff6dc;
+  padding:14px;
+  border-radius:12px;
   font-weight:600;
   font-size:14px;
+  margin-bottom:15px;
   border-left:5px solid #ff9800;
 }
 
 .button-group{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:15px;
+  gap:12px;
+  margin-top:10px;
 }
 
 button{
-  padding:12px;
-  border-radius:8px;
+  padding:14px;
+  border-radius:10px;
   border:none;
   font-size:14px;
   font-weight:600;
   cursor:pointer;
-  transition:0.2s ease;
+  transition:0.2s;
 }
 
 button:hover{
-  opacity:0.9;
   transform:translateY(-1px);
+  opacity:0.92;
 }
 
 #btnMasuk{background:#2e7d32;color:white;}
@@ -96,16 +95,10 @@ button:hover{
 #btnIjin{background:#f9a825;color:white;}
 #btnSakit{background:#6a1b9a;color:white;}
 
-button:disabled{
-  background:#999 !important;
-  cursor:not-allowed;
-  transform:none;
-}
-
 .status-box{
-  margin-top:15px;
-  padding:12px;
-  border-radius:8px;
+  margin-top:18px;
+  padding:14px;
+  border-radius:10px;
   font-weight:600;
   font-size:14px;
   text-align:center;
@@ -117,7 +110,7 @@ button:disabled{
 
 .footer{
   text-align:center;
-  margin-top:20px;
+  margin-top:25px;
   font-size:12px;
   color:gray;
 }
@@ -145,7 +138,7 @@ button:disabled{
   <button id="btnSakit" onclick="prosesAbsensi('SAKIT')">SAKIT</button>
 </div>
 
-<video id="video" autoplay playsinline></video>
+<video id="video" autoplay playsinline style="display:none;"></video>
 <canvas id="canvas" style="display:none;"></canvas>
 
 <div id="message" class="status-box"></div>
@@ -165,9 +158,7 @@ const RADIUS_METERS=50;
 
 /* ================= TANGGAL ================= */
 function tampilkanTanggal(){
-  const now=new Date(
-    new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"})
-  );
+  const now=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"}));
   const formatted=now.toLocaleDateString("id-ID",{
     weekday:"long",
     day:"2-digit",
@@ -196,9 +187,7 @@ async function loadPetugas(){
 /* ================= SIKLUS ================= */
 function getGlobalIndex(){
   const startDate=new Date("2026-01-26T00:00:00+07:00");
-  const today=new Date(
-    new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"})
-  );
+  const today=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"}));
   today.setHours(0,0,0,0);
   const diffDays=Math.floor((today-startDate)/(1000*60*60*24));
   return ((diffDays%5)+5)%5;
@@ -207,33 +196,35 @@ function getGlobalIndex(){
 function updateJadwalPetugas(){
   const select=document.getElementById("petugas");
   const selected=select.options[select.selectedIndex];
-  if(!selected) return;
+  const box=document.getElementById("jadwal-petugas");
+  const tombolContainer=document.getElementById("tombol-absen");
+
+  if(!selected || !selected.value){
+    box.innerHTML="";
+    tombolContainer.style.display="none";
+    return;
+  }
 
   const offset=parseInt(selected.dataset.offset||0);
   const isBackup=selected.dataset.backup==="true";
 
-  const box=document.getElementById("jadwal-petugas");
+  tombolContainer.style.display="grid";
 
   const btnMasuk=document.getElementById("btnMasuk");
   const btnPulang=document.getElementById("btnPulang");
   const btnIjin=document.getElementById("btnIjin");
   const btnSakit=document.getElementById("btnSakit");
 
-  /* ================= BACKUP MODE ================= */
   if(isBackup){
     box.innerHTML="Status: 🟣 BACKUP (Siap menggantikan)";
     box.style.borderLeft="5px solid purple";
 
-    // tampilkan hanya MASUK & PULANG
     btnMasuk.style.display="block";
     btnPulang.style.display="block";
     btnIjin.style.display="none";
     btnSakit.style.display="none";
-
     return;
   }
-
-  /* ================= PETUGAS NORMAL ================= */
 
   const globalIndex=getGlobalIndex();
   const petugasIndex=(globalIndex+offset)%5;
@@ -242,44 +233,36 @@ function updateJadwalPetugas(){
   const shift=shiftList[petugasIndex];
 
   box.innerHTML="Jadwal Anda Hari Ini: "+shift;
+  box.style.borderLeft="5px solid #ff9800";
 
-  // tampilkan semua tombol dulu
   btnMasuk.style.display="block";
   btnPulang.style.display="block";
   btnIjin.style.display="block";
   btnSakit.style.display="block";
 
   if(petugasIndex===4){
-    // jika LIBUR, sembunyikan semua tombol
-    btnMasuk.style.display="none";
-    btnPulang.style.display="none";
-    btnIjin.style.display="none";
-    btnSakit.style.display="none";
+    tombolContainer.style.display="none";
   }
 }
+
 /* ================= CAMERA ================= */
 async function ambilFoto(){
   const video=document.getElementById("video");
   video.style.display="block";
-
   const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});
   video.srcObject=stream;
-
-  await new Promise(resolve=>setTimeout(resolve,1500));
+  await new Promise(r=>setTimeout(r,1500));
 
   const canvas=document.getElementById("canvas");
   canvas.width=video.videoWidth;
   canvas.height=video.videoHeight;
-  const ctx=canvas.getContext("2d");
-  ctx.drawImage(video,0,0);
+  canvas.getContext("2d").drawImage(video,0,0);
 
   stream.getTracks().forEach(track=>track.stop());
   video.style.display="none";
 
   return new Promise(resolve=>{
-    canvas.toBlob(blob=>{
-      resolve(blob);
-    },"image/jpeg",0.9);
+    canvas.toBlob(blob=>resolve(blob),"image/jpeg",0.9);
   });
 }
 
@@ -327,11 +310,7 @@ async function prosesAbsensi(status){
 
     message.textContent="Mengirim data...";
 
-    const res=await fetch(API+"/absensi",{
-      method:"POST",
-      body:formData
-    });
-
+    const res=await fetch(API+"/absensi",{method:"POST",body:formData});
     const data=await res.json();
 
     if(res.ok){
@@ -352,20 +331,18 @@ function hitungJarak(lat1, lon1, lat2, lon2){
   const R=6371000;
   const dLat=(lat2-lat1)*Math.PI/180;
   const dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+
+  const a=Math.sin(dLat/2)**2+
           Math.cos(lat1*Math.PI/180)*
           Math.cos(lat2*Math.PI/180)*
-          Math.sin(dLon/2)*Math.sin(dLon/2);
-  const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-  return R*c;
+          Math.sin(dLon/2)**2;
+  return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
 }
 
 document.getElementById("petugas").addEventListener("change",updateJadwalPetugas);
+
 loadPetugas();
 tampilkanTanggal();
 
 </script>
 </body>
 </html>
-
-
