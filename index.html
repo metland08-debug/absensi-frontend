@@ -14,7 +14,6 @@ body{
   justify-content:center;
   padding:15px;
 }
-
 .container{
   background:white;
   width:100%;
@@ -23,13 +22,11 @@ body{
   border-radius:15px;
   box-shadow:0 5px 15px rgba(0,0,0,0.2);
 }
-
 h1{
   text-align:center;
   color:#2a5298;
   font-size:20px;
 }
-
 .tanggal-box{
   background:#f0f4ff;
   padding:10px;
@@ -38,7 +35,6 @@ h1{
   font-weight:bold;
   margin-bottom:10px;
 }
-
 select,button{
   width:100%;
   padding:15px;
@@ -46,26 +42,19 @@ select,button{
   border-radius:8px;
   font-size:16px;
 }
-
 button{
   color:white;
   border:none;
   font-weight:bold;
 }
-
 #btnMasuk{background:#2e7d32;}
 #btnPulang{background:#c62828;}
-
 video{
   width:100%;
   margin-top:10px;
   border-radius:10px;
 }
-
-canvas{
-  display:none;
-}
-
+canvas{display:none;}
 .status-box{
   margin-top:10px;
   padding:10px;
@@ -74,7 +63,6 @@ canvas{
   text-align:center;
   font-weight:bold;
 }
-
 .success{background:#d4edda;color:#155724;}
 .error{background:#f8d7da;color:#721c24;}
 </style>
@@ -87,7 +75,9 @@ canvas{
 
 <div id="tanggal" class="tanggal-box"></div>
 
-<select id="petugas"></select>
+<select id="petugas">
+<option value="">-- Pilih Nama --</option>
+</select>
 
 <video id="video" autoplay playsinline></video>
 <canvas id="canvas"></canvas>
@@ -104,12 +94,10 @@ canvas{
 <script>
 const API="https://absensi-backend-sc11.onrender.com";
 
-/* ================= POS 9 COORD ================= */
-const TARGET_LAT = -6.195772;
-const TARGET_LNG = 106.709001;
-const RADIUS_METERS = 50;
+const TARGET_LAT=-6.195772;
+const TARGET_LNG=106.709001;
+const RADIUS_METERS=50;
 
-/* ================= TANGGAL ================= */
 function tampilkanTanggal(){
   const now=new Date();
   const hari=now.toLocaleDateString("id-ID",{weekday:"long"});
@@ -118,12 +106,10 @@ function tampilkanTanggal(){
     hari.charAt(0).toUpperCase()+hari.slice(1)+", "+tanggal;
 }
 
-/* ================= LOAD PETUGAS ================= */
 async function loadPetugas(){
   const res=await fetch(API+"/petugas");
   const data=await res.json();
   const select=document.getElementById("petugas");
-  select.innerHTML="";
   data.forEach(p=>{
     const option=document.createElement("option");
     option.value=p.id;
@@ -132,27 +118,31 @@ async function loadPetugas(){
   });
 }
 
-/* ================= GEO DISTANCE ================= */
 function hitungJarak(lat1, lon1, lat2, lon2){
-  const R = 6371000;
-  const dLat = (lat2-lat1) * Math.PI/180;
-  const dLon = (lon2-lon1) * Math.PI/180;
-  const a =
-    Math.sin(dLat/2)*Math.sin(dLat/2) +
+  const R=6371000;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=
+    Math.sin(dLat/2)*Math.sin(dLat/2)+
     Math.cos(lat1*Math.PI/180)*
     Math.cos(lat2*Math.PI/180)*
     Math.sin(dLon/2)*Math.sin(dLon/2);
-  const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
   return R*c;
 }
 
-/* ================= AKTIFKAN CAMERA ================= */
 async function startCamera(){
-  const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});
-  document.getElementById("video").srcObject=stream;
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:"user"},
+      audio:false
+    });
+    document.getElementById("video").srcObject=stream;
+  }catch(e){
+    alert("Kamera harus diizinkan!");
+  }
 }
 
-/* ================= CAPTURE FOTO ================= */
 function ambilFoto(){
   const video=document.getElementById("video");
   const canvas=document.getElementById("canvas");
@@ -167,7 +157,6 @@ function ambilFoto(){
   });
 }
 
-/* ================= PROSES ABSENSI ================= */
 async function prosesAbsensi(status){
 
   const petugas_id=document.getElementById("petugas").value;
@@ -180,18 +169,20 @@ async function prosesAbsensi(status){
 
   message.style.display="block";
   message.className="status-box";
-  message.innerText="Validasi lokasi...";
-
-  if(!navigator.geolocation){
-    message.className="status-box error";
-    message.innerText="GPS tidak didukung.";
-    return;
-  }
+  message.innerText="Mengambil lokasi...";
 
   navigator.geolocation.getCurrentPosition(async pos=>{
 
     const lat=pos.coords.latitude;
     const lng=pos.coords.longitude;
+    const accuracy=pos.coords.accuracy;
+    const speed=pos.coords.speed||0;
+
+    if(accuracy>30){
+      message.className="status-box error";
+      message.innerText="GPS tidak presisi. Tunggu sinyal lebih baik.";
+      return;
+    }
 
     const jarak=hitungJarak(lat,lng,TARGET_LAT,TARGET_LNG);
 
@@ -208,7 +199,12 @@ async function prosesAbsensi(status){
     const formData=new FormData();
     formData.append("petugas_id",petugas_id);
     formData.append("status",status);
-    formData.append("foto",foto);
+    formData.append("latitude",lat);
+    formData.append("longitude",lng);
+    formData.append("accuracy",accuracy);
+    formData.append("speed",speed);
+    formData.append("device_info",navigator.userAgent);
+    formData.append("foto",foto,"selfie.jpg");
 
     message.innerText="Mengirim absensi...";
 
@@ -227,13 +223,12 @@ async function prosesAbsensi(status){
       message.innerText=data.error||"Gagal absen.";
     }
 
-  },err=>{
+  },()=>{
     message.className="status-box error";
     message.innerText="GPS harus aktif!";
   });
 }
 
-/* ================= INIT ================= */
 tampilkanTanggal();
 loadPetugas();
 startCamera();
