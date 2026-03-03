@@ -206,39 +206,57 @@ function getGlobalIndex(){
 
 function updateJadwalPetugas(){
   const select=document.getElementById("petugas");
-  const box=document.getElementById("jadwal-petugas");
-  const tombol=document.getElementById("tombol-absen");
-
-  if(!select.value){
-    box.innerHTML="";
-    tombol.style.display="none";
-    return;
-  }
-
   const selected=select.options[select.selectedIndex];
+  if(!selected) return;
+
   const offset=parseInt(selected.dataset.offset||0);
   const isBackup=selected.dataset.backup==="true";
 
+  const box=document.getElementById("jadwal-petugas");
+
+  const btnMasuk=document.getElementById("btnMasuk");
+  const btnPulang=document.getElementById("btnPulang");
+  const btnIjin=document.getElementById("btnIjin");
+  const btnSakit=document.getElementById("btnSakit");
+
+  /* ================= BACKUP MODE ================= */
   if(isBackup){
     box.innerHTML="Status: 🟣 BACKUP (Siap menggantikan)";
-    tombol.style.display="flex";
+    box.style.borderLeft="5px solid purple";
+
+    // tampilkan hanya MASUK & PULANG
+    btnMasuk.style.display="block";
+    btnPulang.style.display="block";
+    btnIjin.style.display="none";
+    btnSakit.style.display="none";
+
     return;
   }
 
+  /* ================= PETUGAS NORMAL ================= */
+
   const globalIndex=getGlobalIndex();
   const petugasIndex=(globalIndex+offset)%5;
+
   const shiftList=["🟢 Pagi 1","🟢 Pagi 2","🌙 Malam 1","🌙 Malam 2","⚪ LIBUR"];
   const shift=shiftList[petugasIndex];
 
   box.innerHTML="Jadwal Anda Hari Ini: "+shift;
 
+  // tampilkan semua tombol dulu
+  btnMasuk.style.display="block";
+  btnPulang.style.display="block";
+  btnIjin.style.display="block";
+  btnSakit.style.display="block";
+
   if(petugasIndex===4){
-    tombol.style.display="none";
-  }else{
-    tombol.style.display="flex";
+    // jika LIBUR, sembunyikan semua tombol
+    btnMasuk.style.display="none";
+    btnPulang.style.display="none";
+    btnIjin.style.display="none";
+    btnSakit.style.display="none";
   }
 }
-
 /* ================= CAMERA ================= */
 async function ambilFoto(){
   const video=document.getElementById("video");
@@ -349,4 +367,5 @@ tampilkanTanggal();
 </script>
 </body>
 </html>
+
 
