@@ -1,300 +1,275 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Absensi Linmas</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Absensi Linmas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      display: flex;
-      justify-content: center;
-      padding: 20px;
-    }
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
+  display:flex;
+  justify-content:center;
+  padding:15px;
+}
 
-    .jadwal-box {
-      background: #f0f4ff;
-      padding: 12px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      font-size: 14px;
-      border-left: 5px solid #2a5298;
-    }
+.container{
+  background:white;
+  width:100%;
+  max-width:450px;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
 
-    .jadwal-petugas-box {
-      background: #fff8e1;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 10px;
-      font-weight: bold;
-      border-left: 5px solid #ff9800;
-    }
+.logo{
+  width:90px;
+  display:block;
+  margin:0 auto 15px auto;
+}
 
-    .container {
-      background: white;
-      color: #333;
-      width: 100%;
-      max-width: 450px;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
+h1{
+  text-align:center;
+  color:#2a5298;
+  font-size:20px;
+}
 
-    .logo {
-      width: 100px;
-      display: block;
-      margin: 0 auto 15px auto;
-    }
+.jadwal-box{
+  background:#f0f4ff;
+  padding:10px;
+  border-radius:8px;
+  margin-bottom:10px;
+  font-size:14px;
+  border-left:4px solid #2a5298;
+}
 
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #2a5298;
-    }
+.jadwal-petugas-box{
+  background:#fff8e1;
+  padding:10px;
+  border-radius:8px;
+  margin-top:10px;
+  font-weight:bold;
+  border-left:4px solid #ff9800;
+}
 
-    select, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
+select,button{
+  width:100%;
+  padding:16px;
+  margin-top:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:16px;
+}
 
-    button {
-      background: #2a5298;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
+button{
+  background:#2a5298;
+  color:white;
+  border:none;
+  font-weight:bold;
+}
 
-    button:hover {
-      background: #1e3c72;
-    }
+button:disabled{
+  background:#999;
+}
 
-    .status-box {
-      margin-top: 15px;
-      padding: 10px;
-      text-align: center;
-      border-radius: 8px;
-      font-weight: bold;
-      display: none;
-    }
+.status-box{
+  margin-top:12px;
+  padding:10px;
+  text-align:center;
+  border-radius:8px;
+  font-weight:bold;
+  display:none;
+}
 
-    .success {
-      background: #d4edda;
-      color: #155724;
-    }
+.success{background:#d4edda;color:#155724;}
+.error{background:#f8d7da;color:#721c24;}
 
-    .error {
-      background: #f8d7da;
-      color: #721c24;
-    }
+.riwayat-item{
+  padding:6px;
+  margin-bottom:6px;
+  border-radius:6px;
+  font-size:13px;
+}
 
-    .riwayat-item {
-      padding: 8px;
-      margin-bottom: 8px;
-      border-radius: 6px;
-      font-size: 14px;
-    }
+.masuk{background:#d4edda;color:#155724;}
+.pulang{background:#f8d7da;color:#721c24;}
 
-    .masuk {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .pulang {
-      background: #f8d7da;
-      color: #721c24;
-    }
-
-    .footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 12px;
-      color: gray;
-    }
-  </style>
+.footer{
+  text-align:center;
+  margin-top:15px;
+  font-size:12px;
+  color:gray;
+}
+</style>
 </head>
 
 <body>
-  <div class="container">
+<div class="container">
 
-    <img src="LOGO%20RT8%269.png" class="logo">
+<img src="LOGO%20RT8%269.png" class="logo">
 
-    <h1>Absensi Linmas</h1>
+<h1>Absensi Linmas</h1>
 
-    <!-- Jadwal Global -->
-    <div id="jadwal-hari-ini" class="jadwal-box"></div>
+<div id="jadwal-hari-ini" class="jadwal-box"></div>
 
-    <label>Nama Petugas</label>
-    <select id="petugas"></select>
+<select id="petugas"></select>
 
-    <!-- Jadwal Spesifik Petugas -->
-    <div id="jadwal-petugas" class="jadwal-petugas-box"></div>
+<div id="jadwal-petugas" class="jadwal-petugas-box"></div>
 
-    <label>Status</label>
-    <select id="status">
-      <option value="MASUK">MASUK</option>
-      <option value="PULANG">PULANG</option>
-    </select>
+<select id="status">
+  <option value="MASUK">MASUK</option>
+  <option value="PULANG">PULANG</option>
+</select>
 
-    <button id="btnAbsen" onclick="tambahAbsensi()">
-  Kirim Absensi
-</button>
+<button id="btnAbsen" onclick="tambahAbsensi()">Kirim Absensi</button>
 
-    <div id="message" class="status-box"></div>
+<div id="message" class="status-box"></div>
 
-    <hr style="margin:20px 0">
+<hr style="margin:15px 0">
 
-    <h3>Riwayat Absensi</h3>
-    <div id="riwayat"></div>
+<h3 style="font-size:16px;">Riwayat Terakhir</h3>
+<div id="riwayat"></div>
 
-    <div class="footer">
-      RT 08 & 09 Perumahan Metland Puri © 2026
-    </div>
+<div class="footer">
+RT 08 & 09 Perumahan Metland Puri © 2026
+</div>
 
-  </div>
+</div>
 
 <script>
-const API = "https://absensi-backend-sc11.onrender.com";
+const API="https://absensi-backend-sc11.onrender.com";
 
 /* ================= LOAD PETUGAS ================= */
-async function loadPetugas() {
-  const res = await fetch(API + "/petugas");
-  const data = await res.json();
+async function loadPetugas(){
+  const res=await fetch(API+"/petugas");
+  const data=await res.json();
 
-  const select = document.getElementById("petugas");
-  select.innerHTML = "";
+  const select=document.getElementById("petugas");
+  select.innerHTML="";
 
-  data.forEach(p => {
-    const option = document.createElement("option");
-    option.value = p.id;
-    option.textContent = p.nama;
-    option.dataset.offset = p.siklus_offset || 0;
+  data.forEach(p=>{
+    const option=document.createElement("option");
+    option.value=p.id;
+    option.textContent=p.nama;
+    option.dataset.offset=p.siklus_offset||0;
     select.appendChild(option);
   });
 
   updateJadwalPetugas();
 }
 
-/* ================= HITUNG JADWAL GLOBAL ================= */
-function getGlobalIndex() {
-  const startDate = new Date("2026-01-26");
-  const now = new Date();
-  const today = new Date(now);
+/* ================= SIKLUS GLOBAL ================= */
+function getGlobalIndex(){
+  const startDate=new Date("2026-01-26");
+  const now=new Date();
+  const today=new Date(now);
   today.setHours(0,0,0,0);
 
-  const diffTime = today.getTime() - startDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  return ((diffDays % 5) + 5) % 5;
+  const diffDays=Math.floor((today-startDate)/(1000*60*60*24));
+  return ((diffDays%5)+5)%5;
 }
 
-function tampilkanJadwal() {
-  const now = new Date();
-  const index = getGlobalIndex();
+function tampilkanJadwal(){
+  const now=new Date();
+  const index=getGlobalIndex();
 
-  const shiftList = [
-    "🟢 Pagi 1",
-    "🟢 Pagi 2",
-    "🌙 Malam 1",
-    "🌙 Malam 2",
-    "⚪ Libur"
-  ];
+  const shiftList=["🟢 Pagi 1","🟢 Pagi 2","🌙 Malam 1","🌙 Malam 2","⚪ Libur"];
 
-  const shift = shiftList[index];
-
-  document.getElementById("jadwal-hari-ini").innerHTML =
-    "📅 " + now.toLocaleDateString("id-ID") + "<br>" +
-    "📌 Jadwal Global: <b>" + shift + "</b>";
+  document.getElementById("jadwal-hari-ini").innerHTML=
+  "📅 "+now.toLocaleDateString("id-ID")+
+  "<br>📌 Jadwal Global: <b>"+shiftList[index]+"</b>";
 }
 
-/* ================= JADWAL PER PETUGAS ================= */
-function updateJadwalPetugas() {
-  const select = document.getElementById("petugas");
-  const selected = select.options[select.selectedIndex];
-  if (!selected) return;
+/* ================= JADWAL PETUGAS ================= */
+function updateJadwalPetugas(){
+  const select=document.getElementById("petugas");
+  const selected=select.options[select.selectedIndex];
+  if(!selected) return;
 
-  const offset = parseInt(selected.dataset.offset || 0);
-  const globalIndex = getGlobalIndex();
-  const petugasIndex = (globalIndex + offset) % 5;
+  const offset=parseInt(selected.dataset.offset||0);
+  const index=(getGlobalIndex()+offset)%5;
 
-  const shiftList = [
-    "🟢 Pagi 1",
-    "🟢 Pagi 2",
-    "🌙 Malam 1",
-    "🌙 Malam 2",
-    "⚪ LIBUR"
-  ];
+  const shiftList=["🟢 Pagi 1","🟢 Pagi 2","🌙 Malam 1","🌙 Malam 2","⚪ LIBUR"];
 
-  const shift = shiftList[petugasIndex];
-  const box = document.getElementById("jadwal-petugas");
-  const tombol = document.querySelector("button");
+  const box=document.getElementById("jadwal-petugas");
+  const tombol=document.getElementById("btnAbsen");
 
-  box.innerHTML = "Jadwal Anda Hari Ini: " + shift;
+  box.innerHTML="Jadwal Anda Hari Ini: "+shiftList[index];
 
-  if (petugasIndex === 4) {
-    tombol.disabled = true;
-    tombol.style.background = "#999";
-  } else {
-    tombol.disabled = false;
-    tombol.style.background = "#2a5298";
+  if(index===4){
+    tombol.disabled=true;
+  }else{
+    tombol.disabled=false;
   }
 }
 
 /* ================= ABSENSI ================= */
-async function tambahAbsensi() {
-  const petugas_id = document.getElementById("petugas").value;
-  const status = document.getElementById("status").value;
-  const message = document.getElementById("message");
+async function tambahAbsensi(){
 
-  const res = await fetch(API + "/absensi", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ petugas_id, status })
-  });
+  const tombol=document.getElementById("btnAbsen");
+  const petugas_id=document.getElementById("petugas").value;
+  const status=document.getElementById("status").value;
+  const message=document.getElementById("message");
 
-  const data = await res.json();
-
-  message.style.display = "block";
-
-  if (res.ok) {
-    message.className = "status-box success";
-    message.textContent = "Absensi berhasil!";
-    loadRiwayat();
-  } else {
-    message.className = "status-box error";
-    message.textContent = data.error || "Terjadi kesalahan";
+  if(!petugas_id){
+    alert("Pilih nama terlebih dahulu");
+    return;
   }
-}
 
-/* ================= RIWAYAT ================= */
-async function loadRiwayat() {
-  const res = await fetch(API + "/absensi");
-  const data = await res.json();
+  tombol.disabled=true;
+  tombol.innerText="Mengirim...";
 
-  const riwayat = document.getElementById("riwayat");
-  riwayat.innerHTML = "";
+  try{
+    const res=await fetch(API+"/absensi",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({petugas_id,status})
+    });
 
-  data.forEach(item => {
-    const div = document.createElement("div");
-    div.classList.add("riwayat-item");
+    const data=await res.json();
 
-    if (item.status === "MASUK") {
-      div.classList.add("masuk");
-    } else {
-      div.classList.add("pulang");
+    message.style.display="block";
+
+    if(res.ok){
+      message.className="status-box success";
+      message.textContent="Absensi berhasil!";
+      loadRiwayat();
+    }else{
+      message.className="status-box error";
+      message.textContent=data.error||"Terjadi kesalahan";
     }
 
-    div.textContent =
-      item.nama + " - " +
-      item.tanggal.split("T")[0] + " " +
-      item.jam + " - " +
+  }catch(err){
+    message.style.display="block";
+    message.className="status-box error";
+    message.textContent="Koneksi gagal. Coba lagi.";
+  }
+
+  tombol.disabled=false;
+  tombol.innerText="Kirim Absensi";
+}
+
+/* ================= RIWAYAT (LIMIT 20) ================= */
+async function loadRiwayat(){
+  const res=await fetch(API+"/absensi");
+  const data=await res.json();
+
+  const riwayat=document.getElementById("riwayat");
+  riwayat.innerHTML="";
+
+  const lastData=data.slice(0,20); // batasi 20 terakhir
+
+  lastData.forEach(item=>{
+    const div=document.createElement("div");
+    div.classList.add("riwayat-item");
+    div.classList.add(item.status==="MASUK"?"masuk":"pulang");
+
+    div.textContent=
+      item.nama+" - "+
+      item.tanggal.split("T")[0]+" "+
+      item.jam+" - "+
       item.status;
 
     riwayat.appendChild(div);
@@ -302,7 +277,7 @@ async function loadRiwayat() {
 }
 
 /* ================= INIT ================= */
-document.getElementById("petugas").addEventListener("change", updateJadwalPetugas);
+document.getElementById("petugas").addEventListener("change",updateJadwalPetugas);
 
 loadPetugas();
 loadRiwayat();
@@ -311,4 +286,3 @@ tampilkanJadwal();
 
 </body>
 </html>
-
