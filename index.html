@@ -1,3 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<title>Absensi Linmas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+body{
+margin:0;
+font-family:'Segoe UI',Arial,sans-serif;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+}
+
+.container{
+background:white;
+width:100%;
+max-width:430px;
+padding:30px;
+border-radius:20px;
+box-shadow:0 12px 28px rgba(0,0,0,0.25);
+}
+
+.logo{
+width:120px;
+display:block;
+margin:0 auto 10px auto;
+}
+
+h1{
+text-align:center;
+color:#2a5298;
+font-size:22px;
+margin-bottom:20px;
+}
+
+.tanggal-box{
+background:#eef2ff;
+padding:14px;
+border-radius:12px;
+margin-bottom:18px;
+font-weight:600;
+font-size:15px;
+text-align:center;
+border-left:5px solid #2a5298;
+}
+
+select{
+width:100%;
+padding:14px;
+border-radius:10px;
+border:1px solid #ccc;
+font-size:15px;
+margin-bottom:12px;
+}
+
+.jadwal-petugas-box{
+background:#fff6dc;
+padding:14px;
+border-radius:12px;
+font-weight:600;
+font-size:14px;
+margin-bottom:15px;
+border-left:5px solid #ff9800;
+}
+
+.button-group{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+margin-top:10px;
+}
+
+button{
+padding:14px;
+border-radius:10px;
+border:none;
+font-size:14px;
+font-weight:600;
+cursor:pointer;
+}
+
+#btnMasuk{background:#2e7d32;color:white;}
+#btnPulang{background:#c62828;color:white;}
+#btnIjin{background:#f9a825;color:white;}
+#btnSakit{background:#6a1b9a;color:white;}
+
+.status-box{
+margin-top:18px;
+padding:14px;
+border-radius:10px;
+font-weight:600;
+font-size:14px;
+text-align:center;
+display:none;
+}
+
+.success{background:#d4edda;color:#155724;}
+.error{background:#f8d7da;color:#721c24;}
+
+.footer{
+text-align:center;
+margin-top:25px;
+font-size:12px;
+color:gray;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<img src="LOGO%20RT8%269.png" class="logo">
+
+<h1>Absensi Linmas</h1>
+
+<div id="tanggal" class="tanggal-box"></div>
+
+<select id="petugas">
+<option value="">-- Pilih Nama --</option>
+</select>
+
+<div id="jadwal-petugas" class="jadwal-petugas-box"></div>
+
+<div id="tombol-absen" class="button-group" style="display:none;">
+
+<button id="btnMasuk" onclick="prosesAbsensi('MASUK')">MASUK</button>
+<button id="btnPulang" onclick="prosesAbsensi('PULANG')">PULANG</button>
+<button id="btnIjin" onclick="prosesAbsensi('IJIN')">IJIN</button>
+<button id="btnSakit" onclick="prosesAbsensi('SAKIT')">SAKIT</button>
+
+</div>
+
+<video id="video" autoplay playsinline style="display:none;"></video>
+<canvas id="canvas" style="display:none;"></canvas>
+
+<div id="message" class="status-box"></div>
+
+<div class="footer">
+RT 08 & 09 Perumahan Metland Puri © 2026
+</div>
+
+</div>
+
+
+<script>
+
 const API="https://absensi-backend-sc11.onrender.com"
 
 const TARGET_LAT=-6.195772
@@ -42,7 +198,6 @@ const option=document.createElement("option")
 
 option.value=p.id
 option.textContent=p.nama
-option.dataset.offset=p.siklus_offset ?? 0
 option.dataset.backup=p.is_backup ? "true":"false"
 
 select.appendChild(option)
@@ -63,8 +218,8 @@ showError("Gagal memuat data petugas")
 function updateJadwalPetugas(){
 
 const select=document.getElementById("petugas")
-const tombol=document.getElementById("tombol-absen")
 const jadwal=document.getElementById("jadwal-petugas")
+const tombol=document.getElementById("tombol-absen")
 
 if(!select.value){
 
@@ -79,17 +234,12 @@ const isBackup=selected.dataset.backup==="true"
 
 tombol.style.display="grid"
 
-/* RESET tombol */
-
-document.getElementById("btnMasuk").style.display="block"
-document.getElementById("btnPulang").style.display="block"
 document.getElementById("btnIjin").style.display="block"
 document.getElementById("btnSakit").style.display="block"
 
 if(isBackup){
 
 jadwal.innerText="Status: BACKUP (siap menggantikan)"
-
 document.getElementById("btnIjin").style.display="none"
 document.getElementById("btnSakit").style.display="none"
 
@@ -109,19 +259,7 @@ async function ambilFoto(){
 const video=document.getElementById("video")
 video.style.display="block"
 
-let stream
-
-try{
-
-stream=await navigator.mediaDevices.getUserMedia({
-video:{facingMode:"user"}
-})
-
-}catch{
-
-throw new Error("Kamera tidak tersedia")
-
-}
+const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}})
 
 video.srcObject=stream
 
@@ -152,17 +290,18 @@ async function prosesAbsensi(status){
 const petugas_id=document.getElementById("petugas").value
 
 if(!petugas_id){
+
 showError("Pilih nama petugas terlebih dahulu")
 return
+
 }
 
 const message=document.getElementById("message")
 message.style.display="block"
 message.className="status-box"
 
-try{
 
-/* ===== IJIN / SAKIT TANPA GPS ===== */
+/* IJIN / SAKIT TANPA GPS */
 
 if(status==="IJIN"||status==="SAKIT"){
 
@@ -177,7 +316,6 @@ formData.append("status",status)
 formData.append("foto",foto)
 
 const res=await fetch(API+"/absensi",{method:"POST",body:formData})
-
 const data=await res.json()
 
 if(res.ok){
@@ -187,10 +325,11 @@ showError(data.error||"Gagal absen")
 }
 
 return
+
 }
 
 
-/* ===== MASUK / PULANG PAKAI GPS ===== */
+/* MASUK / PULANG PAKAI GPS */
 
 message.textContent="Mengambil lokasi..."
 
@@ -202,8 +341,10 @@ const lng=pos.coords.longitude
 const jarak=hitungJarak(lat,lng,TARGET_LAT,TARGET_LNG)
 
 if(jarak>RADIUS_METERS){
+
 showError("Anda tidak berada di lokasi POS 9")
 return
+
 }
 
 message.textContent="Mengambil foto..."
@@ -219,7 +360,6 @@ formData.append("longitude",lng)
 formData.append("foto",foto)
 
 const res=await fetch(API+"/absensi",{method:"POST",body:formData})
-
 const data=await res.json()
 
 if(res.ok){
@@ -230,16 +370,10 @@ showError(data.error||"Gagal absen")
 
 },
 
-()=>{showError("GPS tidak tersedia")},
+()=>showError("GPS tidak tersedia"),
 {enableHighAccuracy:true,timeout:10000}
 
 )
-
-}catch(err){
-
-showError(err.message)
-
-}
 
 }
 
@@ -288,8 +422,12 @@ box.textContent=text
 
 /* ================= INIT ================= */
 
-document.getElementById("petugas")
-.addEventListener("change",updateJadwalPetugas)
+document.getElementById("petugas").addEventListener("change",updateJadwalPetugas)
 
 loadPetugas()
 tampilkanTanggal()
+
+</script>
+
+</body>
+</html>
