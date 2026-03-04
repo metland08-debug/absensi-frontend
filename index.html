@@ -7,87 +7,81 @@
 
 <style>
 body{
-  margin:0;
-  font-family:'Segoe UI',Arial,sans-serif;
-  background:linear-gradient(135deg,#1e3c72,#2a5298);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
+margin:0;
+font-family:'Segoe UI',Arial,sans-serif;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
 }
 
 .container{
-  background:white;
-  width:100%;
-  max-width:430px;
-  padding:30px;
-  border-radius:20px;
-  box-shadow:0 12px 28px rgba(0,0,0,0.25);
+background:white;
+width:100%;
+max-width:430px;
+padding:30px;
+border-radius:20px;
+box-shadow:0 12px 28px rgba(0,0,0,0.25);
 }
 
 .logo{
-  width:120px;
-  display:block;
-  margin:0 auto 10px auto;
+width:120px;
+display:block;
+margin:0 auto 10px auto;
 }
 
 h1{
-  text-align:center;
-  color:#2a5298;
-  font-size:22px;
-  margin-bottom:20px;
+text-align:center;
+color:#2a5298;
+font-size:22px;
+margin-bottom:20px;
 }
 
 .tanggal-box{
-  background:#eef2ff;
-  padding:14px;
-  border-radius:12px;
-  margin-bottom:18px;
-  font-weight:600;
-  font-size:15px;
-  text-align:center;
-  border-left:5px solid #2a5298;
+background:#eef2ff;
+padding:14px;
+border-radius:12px;
+margin-bottom:18px;
+font-weight:600;
+font-size:15px;
+text-align:center;
+border-left:5px solid #2a5298;
 }
 
 select{
-  width:100%;
-  padding:14px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  font-size:15px;
-  margin-bottom:12px;
+width:100%;
+padding:14px;
+border-radius:10px;
+border:1px solid #ccc;
+font-size:15px;
+margin-bottom:12px;
 }
 
 .jadwal-petugas-box{
-  background:#fff6dc;
-  padding:14px;
-  border-radius:12px;
-  font-weight:600;
-  font-size:14px;
-  margin-bottom:15px;
-  border-left:5px solid #ff9800;
+background:#fff6dc;
+padding:14px;
+border-radius:12px;
+font-weight:600;
+font-size:14px;
+margin-bottom:15px;
+border-left:5px solid #ff9800;
 }
 
 .button-group{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  margin-top:10px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+margin-top:10px;
 }
 
 button{
-  padding:14px;
-  border-radius:10px;
-  border:none;
-  font-size:14px;
-  font-weight:600;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-button:hover{
-  transform:translateY(-1px);
-  opacity:0.92;
+padding:14px;
+border-radius:10px;
+border:none;
+font-size:14px;
+font-weight:600;
+cursor:pointer;
 }
 
 #btnMasuk{background:#2e7d32;color:white;}
@@ -96,31 +90,33 @@ button:hover{
 #btnSakit{background:#6a1b9a;color:white;}
 
 .status-box{
-  margin-top:18px;
-  padding:14px;
-  border-radius:10px;
-  font-weight:600;
-  font-size:14px;
-  text-align:center;
-  display:none;
+margin-top:18px;
+padding:14px;
+border-radius:10px;
+font-weight:600;
+font-size:14px;
+text-align:center;
+display:none;
 }
 
 .success{background:#d4edda;color:#155724;}
 .error{background:#f8d7da;color:#721c24;}
 
 .footer{
-  text-align:center;
-  margin-top:25px;
-  font-size:12px;
-  color:gray;
+text-align:center;
+margin-top:25px;
+font-size:12px;
+color:gray;
 }
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
 <img src="LOGO%20RT8%269.png" class="logo">
+
 <h1>Absensi Linmas</h1>
 
 <div id="tanggal" class="tanggal-box"></div>
@@ -132,13 +128,19 @@ button:hover{
 <div id="jadwal-petugas" class="jadwal-petugas-box"></div>
 
 <div id="tombol-absen" class="button-group" style="display:none;">
-  <button id="btnMasuk" onclick="prosesAbsensi('MASUK')">MASUK</button>
-  <button id="btnPulang" onclick="prosesAbsensi('PULANG')">PULANG</button>
-  <button id="btnIjin" onclick="prosesAbsensi('IJIN')">IJIN</button>
-  <button id="btnSakit" onclick="prosesAbsensi('SAKIT')">SAKIT</button>
+
+<button id="btnMasuk" onclick="prosesAbsensi('MASUK')">MASUK</button>
+
+<button id="btnPulang" onclick="prosesAbsensi('PULANG')">PULANG</button>
+
+<button id="btnIjin" onclick="prosesAbsensi('IJIN')">IJIN</button>
+
+<button id="btnSakit" onclick="prosesAbsensi('SAKIT')">SAKIT</button>
+
 </div>
 
 <video id="video" autoplay playsinline style="display:none;"></video>
+
 <canvas id="canvas" style="display:none;"></canvas>
 
 <div id="message" class="status-box"></div>
@@ -151,198 +153,245 @@ RT 08 & 09 Perumahan Metland Puri © 2026
 
 <script>
 
-const API="https://absensi-backend-sc11.onrender.com";
-const TARGET_LAT=-6.195772;
-const TARGET_LNG=106.709001;
-const RADIUS_METERS=50;
+const API="https://absensi-backend-sc11.onrender.com"
+
+const TARGET_LAT=-6.195772
+const TARGET_LNG=106.709001
+const RADIUS_METERS=75
+
 
 /* ================= TANGGAL ================= */
+
 function tampilkanTanggal(){
-  const now=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"}));
-  const formatted=now.toLocaleDateString("id-ID",{
-    weekday:"long",
-    day:"2-digit",
-    month:"long",
-    year:"numeric"
-  });
-  document.getElementById("tanggal").innerText=formatted;
+
+const now=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"}))
+
+const formatted=now.toLocaleDateString("id-ID",{
+
+weekday:"long",
+
+day:"2-digit",
+
+month:"long",
+
+year:"numeric"
+
+})
+
+document.getElementById("tanggal").innerText=formatted
+
 }
+
 
 /* ================= LOAD PETUGAS ================= */
+
 async function loadPetugas(){
-  const res=await fetch(API+"/petugas");
-  const data=await res.json();
-  const select=document.getElementById("petugas");
-  select.innerHTML='<option value="">-- Pilih Nama --</option>';
-  data.forEach(p=>{
-    const option=document.createElement("option");
-    option.value=p.id;
-    option.textContent=p.nama;
-    option.dataset.offset=p.siklus_offset ?? 0;
-    option.dataset.backup=p.is_backup ? "true":"false";
-    select.appendChild(option);
-  });
+
+const res=await fetch(API+"/petugas")
+
+const data=await res.json()
+
+const select=document.getElementById("petugas")
+
+select.innerHTML='<option value="">-- Pilih Nama --</option>'
+
+data.forEach(p=>{
+
+const option=document.createElement("option")
+
+option.value=p.id
+
+option.textContent=p.nama
+
+option.dataset.offset=p.siklus_offset ?? 0
+
+option.dataset.backup=p.is_backup ? "true":"false"
+
+select.appendChild(option)
+
+})
+
 }
 
-/* ================= SIKLUS ================= */
-function getGlobalIndex(){
-  const startDate=new Date("2026-01-26T00:00:00+07:00");
-  const today=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"}));
-  today.setHours(0,0,0,0);
-  const diffDays=Math.floor((today-startDate)/(1000*60*60*24));
-  return ((diffDays%5)+5)%5;
-}
-
-function updateJadwalPetugas(){
-  const select=document.getElementById("petugas");
-  const selected=select.options[select.selectedIndex];
-  const box=document.getElementById("jadwal-petugas");
-  const tombolContainer=document.getElementById("tombol-absen");
-
-  if(!selected || !selected.value){
-    box.innerHTML="";
-    tombolContainer.style.display="none";
-    return;
-  }
-
-  const offset=parseInt(selected.dataset.offset||0);
-  const isBackup=selected.dataset.backup==="true";
-
-  tombolContainer.style.display="grid";
-
-  const btnMasuk=document.getElementById("btnMasuk");
-  const btnPulang=document.getElementById("btnPulang");
-  const btnIjin=document.getElementById("btnIjin");
-  const btnSakit=document.getElementById("btnSakit");
-
-  if(isBackup){
-    box.innerHTML="Status: 🟣 BACKUP (Siap menggantikan)";
-    box.style.borderLeft="5px solid purple";
-
-    btnMasuk.style.display="block";
-    btnPulang.style.display="block";
-    btnIjin.style.display="none";
-    btnSakit.style.display="none";
-    return;
-  }
-
-  const globalIndex=getGlobalIndex();
-  const petugasIndex=(globalIndex+offset)%5;
-
-  const shiftList=["🟢 Pagi 1","🟢 Pagi 2","🌙 Malam 1","🌙 Malam 2","⚪ LIBUR"];
-  const shift=shiftList[petugasIndex];
-
-  box.innerHTML="Jadwal Anda Hari Ini: "+shift;
-  box.style.borderLeft="5px solid #ff9800";
-
-  btnMasuk.style.display="block";
-  btnPulang.style.display="block";
-  btnIjin.style.display="block";
-  btnSakit.style.display="block";
-
-  if(petugasIndex===4){
-    tombolContainer.style.display="none";
-  }
-}
 
 /* ================= CAMERA ================= */
+
 async function ambilFoto(){
-  const video=document.getElementById("video");
-  video.style.display="block";
-  const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});
-  video.srcObject=stream;
-  await new Promise(r=>setTimeout(r,1500));
 
-  const canvas=document.getElementById("canvas");
-  canvas.width=video.videoWidth;
-  canvas.height=video.videoHeight;
-  canvas.getContext("2d").drawImage(video,0,0);
+const video=document.getElementById("video")
 
-  stream.getTracks().forEach(track=>track.stop());
-  video.style.display="none";
+video.style.display="block"
 
-  return new Promise(resolve=>{
-    canvas.toBlob(blob=>resolve(blob),"image/jpeg",0.9);
-  });
+const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}})
+
+video.srcObject=stream
+
+await new Promise(r=>setTimeout(r,1500))
+
+const canvas=document.getElementById("canvas")
+
+canvas.width=video.videoWidth
+
+canvas.height=video.videoHeight
+
+canvas.getContext("2d").drawImage(video,0,0)
+
+stream.getTracks().forEach(track=>track.stop())
+
+video.style.display="none"
+
+return new Promise(resolve=>{
+
+canvas.toBlob(blob=>resolve(blob),"image/jpeg",0.9)
+
+})
+
 }
+
 
 /* ================= ABSENSI ================= */
+
 async function prosesAbsensi(status){
 
-  const petugas_id=document.getElementById("petugas").value;
-  const message=document.getElementById("message");
+const petugas_id=document.getElementById("petugas").value
 
-  message.style.display="block";
-  message.className="status-box";
-  message.textContent="Mengambil lokasi...";
+const message=document.getElementById("message")
 
-  navigator.geolocation.getCurrentPosition(async pos=>{
+message.style.display="block"
 
-    const lat=pos.coords.latitude;
-    const lng=pos.coords.longitude;
-    const accuracy=pos.coords.accuracy;
+message.className="status-box"
 
-    if(accuracy>40){
-      message.className="status-box error";
-      message.textContent="GPS tidak presisi.";
-      return;
-    }
 
-    if(status==="MASUK"||status==="PULANG"){
-      const jarak=hitungJarak(lat,lng,TARGET_LAT,TARGET_LNG);
-      if(jarak>RADIUS_METERS){
-        message.className="status-box error";
-        message.textContent="Anda di luar area POS 9!";
-        return;
-      }
-    }
+/* ===== IZIN / SAKIT TANPA GPS ===== */
 
-    message.textContent="Mengambil foto selfie...";
-    const foto=await ambilFoto();
+if(status==="IJIN"||status==="SAKIT"){
 
-    const formData=new FormData();
-    formData.append("petugas_id",petugas_id);
-    formData.append("status",status);
-    formData.append("latitude",lat);
-    formData.append("longitude",lng);
-    formData.append("accuracy",accuracy);
-    formData.append("foto",foto);
+message.textContent="Mengambil foto..."
 
-    message.textContent="Mengirim data...";
+const foto=await ambilFoto()
 
-    const res=await fetch(API+"/absensi",{method:"POST",body:formData});
-    const data=await res.json();
+const formData=new FormData()
 
-    if(res.ok){
-      message.className="status-box success";
-      message.textContent="Absensi berhasil!";
-    }else{
-      message.className="status-box error";
-      message.textContent=data.error||"Gagal absen.";
-    }
+formData.append("petugas_id",petugas_id)
 
-  },()=>{
-    message.className="status-box error";
-    message.textContent="GPS harus aktif!";
-  });
+formData.append("status",status)
+
+formData.append("foto",foto)
+
+const res=await fetch(API+"/absensi",{method:"POST",body:formData})
+
+const data=await res.json()
+
+if(res.ok){
+
+message.className="status-box success"
+
+message.textContent="Absensi berhasil!"
+
+}else{
+
+message.className="status-box error"
+
+message.textContent=data.error||"Gagal absen"
+
 }
+
+return
+
+}
+
+
+/* ===== MASUK / PULANG PAKAI GPS ===== */
+
+message.textContent="Mengambil lokasi..."
+
+navigator.geolocation.getCurrentPosition(async pos=>{
+
+const lat=pos.coords.latitude
+
+const lng=pos.coords.longitude
+
+const jarak=hitungJarak(lat,lng,TARGET_LAT,TARGET_LNG)
+
+if(jarak>RADIUS_METERS){
+
+message.className="status-box error"
+
+message.textContent="Anda tidak sedang berada di lokasi POS 9"
+
+return
+
+}
+
+message.textContent="Mengambil foto..."
+
+const foto=await ambilFoto()
+
+const formData=new FormData()
+
+formData.append("petugas_id",petugas_id)
+
+formData.append("status",status)
+
+formData.append("latitude",lat)
+
+formData.append("longitude",lng)
+
+formData.append("foto",foto)
+
+const res=await fetch(API+"/absensi",{method:"POST",body:formData})
+
+const data=await res.json()
+
+if(res.ok){
+
+message.className="status-box success"
+
+message.textContent="Absensi berhasil!"
+
+}else{
+
+message.className="status-box error"
+
+message.textContent=data.error||"Gagal absen"
+
+}
+
+})
+
+}
+
+
+/* ================= JARAK ================= */
 
 function hitungJarak(lat1, lon1, lat2, lon2){
-  const R=6371000;
-  const dLat=(lat2-lat1)*Math.PI/180;
-  const dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+
-          Math.cos(lat1*Math.PI/180)*
-          Math.cos(lat2*Math.PI/180)*
-          Math.sin(dLon/2)**2;
-  return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
+
+const R=6371000
+
+const dLat=(lat2-lat1)*Math.PI/180
+
+const dLon=(lon2-lon1)*Math.PI/180
+
+const a=Math.sin(dLat/2)**2+
+
+Math.cos(lat1*Math.PI/180)*
+
+Math.cos(lat2*Math.PI/180)*
+
+Math.sin(dLon/2)**2
+
+return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)))
+
 }
 
-document.getElementById("petugas").addEventListener("change",updateJadwalPetugas);
 
-loadPetugas();
-tampilkanTanggal();
+document.getElementById("petugas").addEventListener("change",updateJadwalPetugas)
+
+loadPetugas()
+
+tampilkanTanggal()
 
 </script>
+
 </body>
 </html>
