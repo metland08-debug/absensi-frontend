@@ -88,7 +88,7 @@ button:hover {
     <option value="PULANG">Pulang</option>
   </select>
 
-  <button onclick="submitAbsen()">Submit</button>
+  <button id="btnSubmit" onclick="submitAbsen()">Submit</button>
 
   <div id="message"></div>
 </div>
@@ -118,16 +118,21 @@ async function loadPetugas() {
 }
 
 async function submitAbsen() {
+
+  const button = document.getElementById("btnSubmit");
+  button.disabled = true;
+
   const petugas_id = document.getElementById("nama").value;
   const status = document.getElementById("status").value;
 
   if (!petugas_id) {
-    document.getElementById("message").innerText =
-      "Pilih nama dulu";
+    document.getElementById("message").innerText = "Pilih nama dulu";
+    button.disabled = false;
     return;
   }
 
   try {
+
     const res = await fetch(BASE_URL + "/absensi", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -137,17 +142,20 @@ async function submitAbsen() {
     const result = await res.json();
 
     if (res.ok) {
-      document.getElementById("message").innerText =
-        "Absen berhasil";
+      document.getElementById("message").innerText = "Absen berhasil";
     } else {
       document.getElementById("message").innerText =
         result.error || "Gagal absen";
     }
 
   } catch (err) {
+
     document.getElementById("message").innerText =
       "Server tidak bisa dihubungi";
+
   }
+
+  button.disabled = false;
 }
 
 loadPetugas();
@@ -165,3 +173,4 @@ if ('serviceWorker' in navigator) {
 
 </body>
 </html>
+
