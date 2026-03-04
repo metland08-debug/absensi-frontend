@@ -7,209 +7,354 @@
 
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1e3c72">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  display: flex;
-  justify-content: center;
-  padding: 20px;
-  margin: 0;
+
+body{
+font-family:Arial, sans-serif;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+margin:0;
+padding:20px;
+display:flex;
+justify-content:center;
 }
 
-.card {
-  background: white;
-  padding: 25px;
-  width: 100%;
-  max-width: 400px;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+.container{
+background:white;
+max-width:420px;
+width:100%;
+padding:20px;
+border-radius:14px;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
 }
 
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #1e3c72;
+.logo{
+width:140px;
+display:block;
+margin:auto;
+margin-bottom:10px;
 }
 
-label {
-  font-weight: bold;
-  font-size: 14px;
+h2{
+text-align:center;
+color:#1e3c72;
+margin-top:5px;
 }
 
-select, button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 8px;
-  margin-bottom: 15px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+.info{
+background:#e9edf5;
+padding:12px;
+border-radius:10px;
+margin-bottom:15px;
+font-size:14px;
 }
 
-button {
-  background: #1e3c72;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
+.jadwalBox{
+background:#f4ecd2;
+padding:12px;
+border-radius:10px;
+margin-bottom:15px;
+font-weight:bold;
 }
 
-button:hover {
-  background: #16305c;
+select,button{
+width:100%;
+padding:12px;
+font-size:16px;
+border-radius:8px;
+border:1px solid #ccc;
+margin-top:6px;
+margin-bottom:15px;
 }
 
-button:disabled {
-  opacity: 0.6;
+button{
+background:#365fa3;
+color:white;
+font-weight:bold;
+border:none;
+cursor:pointer;
 }
 
-#message {
-  text-align: center;
-  font-weight: bold;
-  margin-top: 10px;
+button:disabled{
+opacity:0.6;
 }
+
+button:hover{
+background:#294b83;
+}
+
+#message{
+text-align:center;
+font-weight:bold;
+margin-top:5px;
+}
+
+hr{
+margin:20px 0;
+}
+
+.riwayatItem{
+padding:10px;
+border-radius:8px;
+margin-bottom:8px;
+font-size:14px;
+}
+
+.masuk{
+background:#d9f0dd;
+}
+
+.pulang{
+background:#f3d3d3;
+}
+
+.footer{
+text-align:center;
+font-size:12px;
+color:#666;
+margin-top:20px;
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>Absensi Linmas</h2>
+<div class="container">
 
-  <label>Nama Petugas</label>
-  <select id="nama">
-    <option value="">Memuat data...</option>
-  </select>
+<img src="LOGO RT8&9.png" class="logo">
 
-  <label>Status</label>
-  <select id="status">
-    <option value="MASUK">Datang</option>
-    <option value="PULANG">Pulang</option>
-  </select>
+<h2>Absensi Linmas</h2>
 
-  <button id="btnSubmit" onclick="submitAbsen()">Submit</button>
+<div class="info">
+📅 <span id="tanggal"></span><br>
+📌 Jadwal Global: <b id="jadwalGlobal">-</b>
+</div>
 
-  <div id="message"></div>
+<label>Nama Petugas</label>
+<select id="nama"></select>
+
+<div class="jadwalBox">
+Jadwal Anda Hari Ini: <b id="jadwalPetugas">-</b>
+</div>
+
+<label>Status</label>
+<select id="status">
+<option value="MASUK">MASUK</option>
+<option value="PULANG">PULANG</option>
+</select>
+
+<button id="btnSubmit" onclick="submitAbsen()">
+Kirim Absensi
+</button>
+
+<div id="message"></div>
+
+<hr>
+
+<h3>Riwayat Terakhir</h3>
+
+<div id="riwayat"></div>
+
+<div class="footer">
+RT 08 & 09 Perumahan Metland Puri © 2026
+</div>
+
 </div>
 
 <script>
 
-const BASE_URL = "https://absensi-backend-sc11.onrender.com";
+const BASE_URL="https://absensi-backend-sc11.onrender.com";
+const SIKLUS=["Pagi 1","Pagi 2","Malam 1","Malam 2","Libur"];
+const START_DATE=new Date("2026-01-26");
 
-async function loadPetugas() {
+let petugasList=[];
 
-  try {
+function getGlobalIndex(){
 
-    const res = await fetch(BASE_URL + "/petugas");
-    const data = await res.json();
+const now=new Date();
+const diff=Math.floor((now-START_DATE)/(1000*60*60*24));
 
-    const select = document.getElementById("nama");
-    select.innerHTML = '<option value="">-- Pilih Nama --</option>';
-
-    data.forEach(function(p) {
-
-      const option = document.createElement("option");
-      option.value = p.id;
-      option.textContent = p.nama;
-
-      select.appendChild(option);
-
-    });
-
-  } catch (err) {
-
-    document.getElementById("message").innerText =
-      "Gagal memuat data petugas";
-
-  }
+return diff%5;
 
 }
 
-async function submitAbsen() {
+function updateGlobal(){
 
-  const button = document.getElementById("btnSubmit");
-  button.disabled = true;
-
-  const petugas_id = document.getElementById("nama").value;
-  const status = document.getElementById("status").value;
-
-  document.getElementById("message").innerText = "Mengirim absensi...";
-
-  if (!petugas_id) {
-
-    document.getElementById("message").innerText = "Pilih nama dulu";
-    button.disabled = false;
-    return;
-
-  }
-
-  try {
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-
-    const res = await fetch(BASE_URL + "/absensi", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        petugas_id: petugas_id,
-        status: status
-      }),
-      signal: controller.signal
-    });
-
-    clearTimeout(timeout);
-
-    const result = await res.json();
-
-    if (res.ok) {
-
-      document.getElementById("message").innerText =
-        "Absen berhasil";
-
-      document.getElementById("nama").value = "";
-      document.getElementById("status").value = "MASUK";
-
-    } else {
-
-      document.getElementById("message").innerText =
-        result.error || "Gagal absen";
-
-    }
-
-  } catch (err) {
-
-    document.getElementById("message").innerText =
-      "Server tidak bisa dihubungi";
-
-  }
-
-  button.disabled = false;
+const index=getGlobalIndex();
+document.getElementById("jadwalGlobal").innerText=SIKLUS[index];
 
 }
 
+function getJadwalPetugas(offset){
+
+const global=getGlobalIndex();
+const index=(global+offset)%5;
+return SIKLUS[index];
+
+}
+
+async function loadPetugas(){
+
+try{
+
+const res=await fetch(BASE_URL+"/petugas");
+const data=await res.json();
+
+petugasList=data;
+
+const select=document.getElementById("nama");
+select.innerHTML='<option value="">-- Pilih Nama --</option>';
+
+data.forEach(p=>{
+
+const option=document.createElement("option");
+option.value=p.id;
+option.textContent=p.nama;
+
+select.appendChild(option);
+
+});
+
+}catch(e){
+
+document.getElementById("message").innerText="Gagal memuat petugas";
+
+}
+
+}
+
+document.getElementById("nama").addEventListener("change",function(){
+
+const id=this.value;
+
+const petugas=petugasList.find(p=>p.id==id);
+
+if(!petugas){
+document.getElementById("jadwalPetugas").innerText="-";
+return;
+}
+
+if(petugas.is_backup){
+
+document.getElementById("jadwalPetugas").innerText="Backup";
+
+}else{
+
+document.getElementById("jadwalPetugas").innerText=
+getJadwalPetugas(petugas.siklus_offset);
+
+}
+
+});
+
+async function submitAbsen(){
+
+const btn=document.getElementById("btnSubmit");
+btn.disabled=true;
+
+const petugas_id=document.getElementById("nama").value;
+const status=document.getElementById("status").value;
+
+document.getElementById("message").innerText="Mengirim absensi...";
+
+if(!petugas_id){
+
+document.getElementById("message").innerText="Pilih nama dulu";
+btn.disabled=false;
+return;
+
+}
+
+try{
+
+const controller=new AbortController();
+const timeout=setTimeout(()=>controller.abort(),8000);
+
+const res=await fetch(BASE_URL+"/absensi",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+petugas_id:petugas_id,
+status:status
+}),
+signal:controller.signal
+});
+
+clearTimeout(timeout);
+
+const result=await res.json();
+
+if(res.ok){
+
+document.getElementById("message").innerText="Absen berhasil";
+
+document.getElementById("nama").value="";
+document.getElementById("status").value="MASUK";
+document.getElementById("jadwalPetugas").innerText="-";
+
+loadRiwayat();
+
+}else{
+
+document.getElementById("message").innerText=result.error||"Gagal absen";
+
+}
+
+}catch(e){
+
+document.getElementById("message").innerText="Server tidak bisa dihubungi";
+
+}
+
+btn.disabled=false;
+
+}
+
+async function loadRiwayat(){
+
+try{
+
+const res=await fetch(BASE_URL+"/absensi");
+const data=await res.json();
+
+const box=document.getElementById("riwayat");
+box.innerHTML="";
+
+data.slice(-5).reverse().forEach(r=>{
+
+const div=document.createElement("div");
+
+div.className="riwayatItem "+(r.status==="MASUK"?"masuk":"pulang");
+
+div.innerText=r.nama+" - "+r.tanggal+" "+r.jam+" - "+r.status;
+
+box.appendChild(div);
+
+});
+
+}catch(e){}
+
+}
+
+function setTanggal(){
+
+const now=new Date();
+
+document.getElementById("tanggal").innerText=
+now.toLocaleDateString("id-ID",{
+weekday:"long",
+year:"numeric",
+month:"long",
+day:"numeric"
+});
+
+}
+
+setTanggal();
+updateGlobal();
 loadPetugas();
-
-/* SERVICE WORKER */
-
-if ('serviceWorker' in navigator) {
-
-  window.addEventListener('load', function() {
-
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(function() {
-
-        console.log('Service Worker Registered');
-
-      });
-
-  });
-
-}
+loadRiwayat();
 
 </script>
 
