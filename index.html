@@ -1,432 +1,166 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-
 <meta charset="UTF-8">
-<title>Absensi Linmas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Absensi Linmas</title>
+
+<!-- PWA SUPPORT -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1e3c72">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 
 <style>
-
-body{
-margin:0;
-font-family:'Segoe UI',Arial,sans-serif;
-background:linear-gradient(135deg,#1e3c72,#2a5298);
-display:flex;
-justify-content:center;
-align-items:center;
-min-height:100vh;
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  margin: 0;
 }
 
-.container{
-background:white;
-width:100%;
-max-width:430px;
-padding:30px;
-border-radius:20px;
-box-shadow:0 12px 28px rgba(0,0,0,0.25);
+.card {
+  background: white;
+  padding: 25px;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-.logo{
-width:120px;
-display:block;
-margin:0 auto 10px auto;
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #1e3c72;
 }
 
-h1{
-text-align:center;
-color:#2a5298;
-font-size:22px;
-margin-bottom:20px;
+label {
+  font-weight: bold;
+  font-size: 14px;
 }
 
-.tanggal-box{
-background:#eef2ff;
-padding:14px;
-border-radius:12px;
-margin-bottom:18px;
-font-weight:600;
-font-size:15px;
-text-align:center;
-border-left:5px solid #2a5298;
+select, button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
 }
 
-select{
-width:100%;
-padding:14px;
-border-radius:10px;
-border:1px solid #ccc;
-font-size:15px;
-margin-bottom:12px;
+button {
+  background: #1e3c72;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-.jadwal-petugas-box{
-background:#fff6dc;
-padding:14px;
-border-radius:12px;
-font-weight:600;
-font-size:14px;
-margin-bottom:15px;
-border-left:5px solid #ff9800;
+button:hover {
+  background: #16305c;
 }
 
-.button-group{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:12px;
-margin-top:10px;
+#message {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 10px;
 }
-
-button{
-padding:14px;
-border-radius:10px;
-border:none;
-font-size:14px;
-font-weight:600;
-cursor:pointer;
-}
-
-#btnMasuk{background:#2e7d32;color:white;}
-#btnPulang{background:#c62828;color:white;}
-#btnIjin{background:#f9a825;color:white;}
-#btnSakit{background:#6a1b9a;color:white;}
-
-.status-box{
-margin-top:18px;
-padding:14px;
-border-radius:10px;
-font-weight:600;
-font-size:14px;
-text-align:center;
-display:none;
-}
-
-.success{background:#d4edda;color:#155724;}
-.error{background:#f8d7da;color:#721c24;}
-
-.footer{
-text-align:center;
-margin-top:25px;
-font-size:12px;
-color:gray;
-}
-
 </style>
-
 </head>
 
 <body>
 
-<div class="container">
+<div class="card">
+  <h2>Absensi Linmas</h2>
 
-<img src="LOGO%20RT8%269.png" class="logo">
+  <label>Nama Petugas</label>
+  <select id="nama">
+    <option value="">Memuat data...</option>
+  </select>
 
-<h1>Absensi Linmas</h1>
+  <label>Status</label>
+  <select id="status">
+    <option value="MASUK">Datang</option>
+    <option value="PULANG">Pulang</option>
+  </select>
 
-<div id="tanggal" class="tanggal-box"></div>
+  <button onclick="submitAbsen()">Submit</button>
 
-<select id="petugas">
-<option value="">-- Pilih Nama --</option>
-</select>
-
-<div id="jadwal-petugas" class="jadwal-petugas-box"></div>
-
-<div id="tombol-absen" class="button-group" style="display:none;">
-
-<button id="btnMasuk" onclick="prosesAbsensi('MASUK')">MASUK</button>
-<button id="btnPulang" onclick="prosesAbsensi('PULANG')">PULANG</button>
-<button id="btnIjin" onclick="prosesAbsensi('IJIN')">IJIN</button>
-<button id="btnSakit" onclick="prosesAbsensi('SAKIT')">SAKIT</button>
-
+  <div id="message"></div>
 </div>
-
-<video id="video" autoplay playsinline style="display:none;"></video>
-<canvas id="canvas" style="display:none;"></canvas>
-
-<div id="message" class="status-box"></div>
-
-<div class="footer">
-RT 08 & 09 Perumahan Metland Puri © 2026
-</div>
-
-</div>
-
 
 <script>
+const BASE_URL = "https://absensi-backend-sc11.onrender.com";
 
-const API="https://absensi-backend-sc11.onrender.com"
+async function loadPetugas() {
+  try {
+    const res = await fetch(BASE_URL + "/petugas");
+    const data = await res.json();
 
-const TARGET_LAT=-6.195772
-const TARGET_LNG=106.709001
-const RADIUS_METERS=75
+    const select = document.getElementById("nama");
+    select.innerHTML = '<option value="">-- Pilih Nama --</option>';
 
+    data.forEach(function(p) {
+      const option = document.createElement("option");
+      option.value = p.id;
+      option.textContent = p.nama;
+      select.appendChild(option);
+    });
 
-/* ================= TANGGAL ================= */
-
-function tampilkanTanggal(){
-
-const now=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"}))
-
-const formatted=now.toLocaleDateString("id-ID",{
-weekday:"long",
-day:"2-digit",
-month:"long",
-year:"numeric"
-})
-
-document.getElementById("tanggal").innerText=formatted
-
+  } catch (err) {
+    document.getElementById("message").innerText =
+      "Gagal memuat data petugas";
+  }
 }
 
+async function submitAbsen() {
+  const petugas_id = document.getElementById("nama").value;
+  const status = document.getElementById("status").value;
 
-/* ================= LOAD PETUGAS ================= */
+  if (!petugas_id) {
+    document.getElementById("message").innerText =
+      "Pilih nama dulu";
+    return;
+  }
 
-async function loadPetugas(){
+  try {
+    const res = await fetch(BASE_URL + "/absensi", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ petugas_id: petugas_id, status: status })
+    });
 
-try{
+    const result = await res.json();
 
-const res=await fetch(API+"/petugas")
-const data=await res.json()
+    if (res.ok) {
+      document.getElementById("message").innerText =
+        "Absen berhasil";
+    } else {
+      document.getElementById("message").innerText =
+        result.error || "Gagal absen";
+    }
 
-const select=document.getElementById("petugas")
-
-select.innerHTML='<option value="">-- Pilih Nama --</option>'
-
-data.forEach(p=>{
-
-const option=document.createElement("option")
-
-option.value=p.id
-option.textContent=p.nama
-option.dataset.backup=p.is_backup ? "true":"false"
-
-select.appendChild(option)
-
-})
-
-}catch{
-
-showError("Gagal memuat data petugas")
-
+  } catch (err) {
+    document.getElementById("message").innerText =
+      "Server tidak bisa dihubungi";
+  }
 }
 
+loadPetugas();
+
+/* REGISTER SERVICE WORKER */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(function() {
+        console.log('Service Worker Registered');
+      });
+  });
 }
-
-
-/* ================= JADWAL PETUGAS ================= */
-
-function updateJadwalPetugas(){
-
-const select=document.getElementById("petugas")
-const jadwal=document.getElementById("jadwal-petugas")
-const tombol=document.getElementById("tombol-absen")
-
-if(!select.value){
-
-jadwal.innerText=""
-tombol.style.display="none"
-return
-
-}
-
-const selected=select.options[select.selectedIndex]
-const isBackup=selected.dataset.backup==="true"
-
-tombol.style.display="grid"
-
-document.getElementById("btnIjin").style.display="block"
-document.getElementById("btnSakit").style.display="block"
-
-if(isBackup){
-
-jadwal.innerText="Status: BACKUP (siap menggantikan)"
-document.getElementById("btnIjin").style.display="none"
-document.getElementById("btnSakit").style.display="none"
-
-}else{
-
-jadwal.innerText="Silakan melakukan absensi sesuai kondisi Anda."
-
-}
-
-}
-
-
-/* ================= CAMERA ================= */
-
-async function ambilFoto(){
-
-const video=document.getElementById("video")
-video.style.display="block"
-
-const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}})
-
-video.srcObject=stream
-
-await new Promise(r=>setTimeout(r,1200))
-
-const canvas=document.getElementById("canvas")
-
-canvas.width=video.videoWidth
-canvas.height=video.videoHeight
-
-canvas.getContext("2d").drawImage(video,0,0)
-
-stream.getTracks().forEach(track=>track.stop())
-
-video.style.display="none"
-
-return new Promise(resolve=>{
-canvas.toBlob(blob=>resolve(blob),"image/jpeg",0.9)
-})
-
-}
-
-
-/* ================= ABSENSI ================= */
-
-async function prosesAbsensi(status){
-
-const petugas_id=document.getElementById("petugas").value
-
-if(!petugas_id){
-
-showError("Pilih nama petugas terlebih dahulu")
-return
-
-}
-
-const message=document.getElementById("message")
-message.style.display="block"
-message.className="status-box"
-
-
-/* IJIN / SAKIT TANPA GPS */
-
-if(status==="IJIN"||status==="SAKIT"){
-
-message.textContent="Mengambil foto..."
-
-const foto=await ambilFoto()
-
-const formData=new FormData()
-
-formData.append("petugas_id",petugas_id)
-formData.append("status",status)
-formData.append("foto",foto)
-
-const res=await fetch(API+"/absensi",{method:"POST",body:formData})
-const data=await res.json()
-
-if(res.ok){
-showSuccess("Absensi berhasil!")
-}else{
-showError(data.error||"Gagal absen")
-}
-
-return
-
-}
-
-
-/* MASUK / PULANG PAKAI GPS */
-
-message.textContent="Mengambil lokasi..."
-
-navigator.geolocation.getCurrentPosition(async pos=>{
-
-const lat=pos.coords.latitude
-const lng=pos.coords.longitude
-
-const jarak=hitungJarak(lat,lng,TARGET_LAT,TARGET_LNG)
-
-if(jarak>RADIUS_METERS){
-
-showError("Anda tidak berada di lokasi POS 9")
-return
-
-}
-
-message.textContent="Mengambil foto..."
-
-const foto=await ambilFoto()
-
-const formData=new FormData()
-
-formData.append("petugas_id",petugas_id)
-formData.append("status",status)
-formData.append("latitude",lat)
-formData.append("longitude",lng)
-formData.append("foto",foto)
-
-const res=await fetch(API+"/absensi",{method:"POST",body:formData})
-const data=await res.json()
-
-if(res.ok){
-showSuccess("Absensi berhasil!")
-}else{
-showError(data.error||"Gagal absen")
-}
-
-},
-
-()=>showError("GPS tidak tersedia"),
-{enableHighAccuracy:true,timeout:10000}
-
-)
-
-}
-
-
-/* ================= JARAK ================= */
-
-function hitungJarak(lat1, lon1, lat2, lon2){
-
-const R=6371000
-
-const dLat=(lat2-lat1)*Math.PI/180
-const dLon=(lon2-lon1)*Math.PI/180
-
-const a=Math.sin(dLat/2)**2+
-Math.cos(lat1*Math.PI/180)*
-Math.cos(lat2*Math.PI/180)*
-Math.sin(dLon/2)**2
-
-return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)))
-
-}
-
-
-/* ================= MESSAGE ================= */
-
-function showError(text){
-
-const box=document.getElementById("message")
-
-box.className="status-box error"
-box.style.display="block"
-box.textContent=text
-
-}
-
-function showSuccess(text){
-
-const box=document.getElementById("message")
-
-box.className="status-box success"
-box.style.display="block"
-box.textContent=text
-
-}
-
-
-/* ================= INIT ================= */
-
-document.getElementById("petugas").addEventListener("change",updateJadwalPetugas)
-
-loadPetugas()
-tampilkanTanggal()
-
 </script>
 
 </body>
