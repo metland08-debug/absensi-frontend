@@ -12,12 +12,10 @@ function tampilkanTanggal(){
 const now=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"}))
 
 const formatted=now.toLocaleDateString("id-ID",{
-
 weekday:"long",
 day:"2-digit",
 month:"long",
 year:"numeric"
-
 })
 
 document.getElementById("tanggal").innerText=formatted
@@ -65,23 +63,41 @@ showError("Gagal memuat data petugas")
 function updateJadwalPetugas(){
 
 const select=document.getElementById("petugas")
-
-const jadwalBox=document.getElementById("jadwal-petugas")
-
 const tombol=document.getElementById("tombol-absen")
+const jadwal=document.getElementById("jadwal-petugas")
 
 if(!select.value){
 
-jadwalBox.innerText=""
+jadwal.innerText=""
 tombol.style.display="none"
-
 return
 
 }
 
-jadwalBox.innerText="Silakan melakukan absensi sesuai kondisi Anda."
+const selected=select.options[select.selectedIndex]
+const isBackup=selected.dataset.backup==="true"
 
 tombol.style.display="grid"
+
+/* RESET tombol */
+
+document.getElementById("btnMasuk").style.display="block"
+document.getElementById("btnPulang").style.display="block"
+document.getElementById("btnIjin").style.display="block"
+document.getElementById("btnSakit").style.display="block"
+
+if(isBackup){
+
+jadwal.innerText="Status: BACKUP (siap menggantikan)"
+
+document.getElementById("btnIjin").style.display="none"
+document.getElementById("btnSakit").style.display="none"
+
+}else{
+
+jadwal.innerText="Silakan melakukan absensi sesuai kondisi Anda."
+
+}
 
 }
 
@@ -91,7 +107,6 @@ tombol.style.display="grid"
 async function ambilFoto(){
 
 const video=document.getElementById("video")
-
 video.style.display="block"
 
 let stream
@@ -124,9 +139,7 @@ stream.getTracks().forEach(track=>track.stop())
 video.style.display="none"
 
 return new Promise(resolve=>{
-
 canvas.toBlob(blob=>resolve(blob),"image/jpeg",0.9)
-
 })
 
 }
@@ -139,14 +152,11 @@ async function prosesAbsensi(status){
 const petugas_id=document.getElementById("petugas").value
 
 if(!petugas_id){
-
 showError("Pilih nama petugas terlebih dahulu")
 return
-
 }
 
 const message=document.getElementById("message")
-
 message.style.display="block"
 message.className="status-box"
 
@@ -171,17 +181,12 @@ const res=await fetch(API+"/absensi",{method:"POST",body:formData})
 const data=await res.json()
 
 if(res.ok){
-
 showSuccess("Absensi berhasil!")
-
 }else{
-
 showError(data.error||"Gagal absen")
-
 }
 
 return
-
 }
 
 
@@ -197,11 +202,8 @@ const lng=pos.coords.longitude
 const jarak=hitungJarak(lat,lng,TARGET_LAT,TARGET_LNG)
 
 if(jarak>RADIUS_METERS){
-
 showError("Anda tidak berada di lokasi POS 9")
-
 return
-
 }
 
 message.textContent="Mengambil foto..."
@@ -221,23 +223,14 @@ const res=await fetch(API+"/absensi",{method:"POST",body:formData})
 const data=await res.json()
 
 if(res.ok){
-
 showSuccess("Absensi berhasil!")
-
 }else{
-
 showError(data.error||"Gagal absen")
-
 }
 
 },
 
-()=>{
-
-showError("GPS tidak tersedia")
-
-},
-
+()=>{showError("GPS tidak tersedia")},
 {enableHighAccuracy:true,timeout:10000}
 
 )
@@ -261,10 +254,8 @@ const dLat=(lat2-lat1)*Math.PI/180
 const dLon=(lon2-lon1)*Math.PI/180
 
 const a=Math.sin(dLat/2)**2+
-
 Math.cos(lat1*Math.PI/180)*
 Math.cos(lat2*Math.PI/180)*
-
 Math.sin(dLon/2)**2
 
 return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)))
@@ -293,49 +284,12 @@ box.style.display="block"
 box.textContent=text
 
 }
-function updateJadwalPetugas(){
 
-const select=document.getElementById("petugas")
-const tombol=document.getElementById("tombol-absen")
-const jadwal=document.getElementById("jadwal-petugas")
-
-if(!select.value){
-
-jadwal.innerText=""
-tombol.style.display="none"
-return
-
-}
-
-const selected=select.options[select.selectedIndex]
-
-const isBackup=selected.dataset.backup==="true"
-
-if(isBackup){
-
-jadwal.innerText="Status: BACKUP (siap menggantikan)"
-tombol.style.display="grid"
-
-document.getElementById("btnIjin").style.display="none"
-document.getElementById("btnSakit").style.display="none"
-
-return
-
-}
-
-jadwal.innerText="Silakan melakukan absensi sesuai kondisi Anda."
-tombol.style.display="grid"
-
-document.getElementById("btnIjin").style.display="block"
-document.getElementById("btnSakit").style.display="block"
-
-}
 
 /* ================= INIT ================= */
 
-document.getElementById("petugas").addEventListener("change",updateJadwalPetugas)
+document.getElementById("petugas")
+.addEventListener("change",updateJadwalPetugas)
 
 loadPetugas()
-
 tampilkanTanggal()
-
