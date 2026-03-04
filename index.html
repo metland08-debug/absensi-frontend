@@ -123,7 +123,9 @@ async function submitAbsen() {
   button.disabled = true;
 
   const petugas_id = document.getElementById("nama").value;
-  const status = document.getElementById("status").value;
+const status = document.getElementById("status").value;
+
+document.getElementById("message").innerText = "Mengirim absensi...";
 
   if (!petugas_id) {
     document.getElementById("message").innerText = "Pilih nama dulu";
@@ -173,4 +175,5 @@ if ('serviceWorker' in navigator) {
 
 </body>
 </html>
+
 
