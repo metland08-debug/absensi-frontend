@@ -143,9 +143,15 @@ document.getElementById("message").innerText = "Mengirim absensi...";
 
     const result = await res.json();
 
-    if (res.ok) {
-      document.getElementById("message").innerText = "Absen berhasil";
-    } else {
+   if (res.ok) {
+
+  document.getElementById("message").innerText =
+    "Absen berhasil";
+
+  document.getElementById("nama").value = "";
+  document.getElementById("status").value = "MASUK";
+
+} else {
       document.getElementById("message").innerText =
         result.error || "Gagal absen";
     }
@@ -175,5 +181,6 @@ if ('serviceWorker' in navigator) {
 
 </body>
 </html>
+
 
 
