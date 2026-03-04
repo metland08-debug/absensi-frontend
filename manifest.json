@@ -19,3 +19,5 @@
     }
   ]
 }
+"display": "standalone",
+"display_override": ["standalone"]
