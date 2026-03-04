@@ -293,7 +293,43 @@ box.style.display="block"
 box.textContent=text
 
 }
+function updateJadwalPetugas(){
 
+const select=document.getElementById("petugas")
+const tombol=document.getElementById("tombol-absen")
+const jadwal=document.getElementById("jadwal-petugas")
+
+if(!select.value){
+
+jadwal.innerText=""
+tombol.style.display="none"
+return
+
+}
+
+const selected=select.options[select.selectedIndex]
+
+const isBackup=selected.dataset.backup==="true"
+
+if(isBackup){
+
+jadwal.innerText="Status: BACKUP (siap menggantikan)"
+tombol.style.display="grid"
+
+document.getElementById("btnIjin").style.display="none"
+document.getElementById("btnSakit").style.display="none"
+
+return
+
+}
+
+jadwal.innerText="Silakan melakukan absensi sesuai kondisi Anda."
+tombol.style.display="grid"
+
+document.getElementById("btnIjin").style.display="block"
+document.getElementById("btnSakit").style.display="block"
+
+}
 
 /* ================= INIT ================= */
 
@@ -302,3 +338,4 @@ document.getElementById("petugas").addEventListener("change",updateJadwalPetugas
 loadPetugas()
 
 tampilkanTanggal()
+
