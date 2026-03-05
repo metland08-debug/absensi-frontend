@@ -138,11 +138,27 @@ margin-top:20px;
 Jadwal Anda Hari Ini: <b id="jadwalPetugas">-</b>
 </div>
 
-<label>Status</label>
-<select id="status">
-<option value="MASUK">MASUK</option>
-<option value="PULANG">PULANG</option>
-</select>
+<label>Pilih Absen</label>
+
+<div class="statusButtons">
+
+<button type="button" onclick="pilihStatus('MASUK')" id="btnMasuk">
+DATANG
+</button>
+
+<button type="button" onclick="pilihStatus('PULANG')" id="btnPulang">
+PULANG
+</button>
+
+<button type="button" onclick="pilihStatus('SAKIT')" id="btnSakit">
+SAKIT
+</button>
+
+<button type="button" onclick="pilihStatus('IZIN')" id="btnIzin">
+IZIN
+</button>
+
+</div>
 
 <button id="btnSubmit" onclick="submitAbsen()">
 Kirim Absensi
@@ -360,3 +376,4 @@ loadRiwayat();
 
 </body>
 </html>
+
