@@ -18,22 +18,17 @@ margin:0;
 padding:20px;
 display:flex;
 justify-content:center;
-background:
-linear-gradient(160deg,#0f172a,#1e3a8a,#2563eb);
+background:linear-gradient(160deg,#0f172a,#1e3a8a,#2563eb);
 min-height:100vh;
 }
 
 .container{
-
 background:white;
 width:100%;
 max-width:420px;
 padding:24px;
 border-radius:18px;
-
-box-shadow:
-0 20px 40px rgba(0,0,0,0.35);
-
+box-shadow:0 20px 40px rgba(0,0,0,0.35);
 }
 
 .logo{
@@ -51,58 +46,46 @@ font-size:24px;
 }
 
 .infoBox{
-
 background:#f1f5f9;
 padding:12px;
 border-radius:10px;
 margin-bottom:18px;
 font-size:14px;
-
 }
 
 .jadwalBox{
-
 background:#fef3c7;
 padding:12px;
 border-radius:10px;
 margin-bottom:18px;
 font-weight:bold;
 color:#92400e;
-
 }
 
 label{
-
 font-weight:bold;
 font-size:14px;
 color:#334155;
-
 }
 
 select{
-
 width:100%;
 padding:12px;
 font-size:16px;
 border-radius:10px;
 border:1px solid #cbd5e1;
-
 margin-top:6px;
 margin-bottom:18px;
-
 }
 
 .statusGrid{
-
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:12px;
 margin-bottom:18px;
-
 }
 
 .statusBtn{
-
 padding:14px;
 border-radius:10px;
 border:none;
@@ -110,89 +93,49 @@ font-weight:bold;
 font-size:14px;
 cursor:pointer;
 transition:0.15s;
-
 }
 
 .statusBtn:hover{
-
 transform:scale(1.02);
-
 }
 
-.datang{
-
-background:#16a34a;
-color:white;
-
-}
-
-.pulang{
-
-background:#2563eb;
-color:white;
-
-}
-
-.sakit{
-
-background:#f59e0b;
-color:white;
-
-}
-
-.izin{
-
-background:#64748b;
-color:white;
-
-}
+.datang{background:#16a34a;color:white;}
+.pulang{background:#2563eb;color:white;}
+.sakit{background:#f59e0b;color:white;}
+.izin{background:#64748b;color:white;}
 
 .statusBtn.active{
-
-box-shadow:
-0 0 0 3px rgba(0,0,0,0.15);
-
+box-shadow:0 0 0 3px rgba(0,0,0,0.15);
 }
 
 .submitBtn{
-
 width:100%;
 padding:15px;
-
 font-size:16px;
 border:none;
 border-radius:12px;
-
 background:linear-gradient(135deg,#2563eb,#1d4ed8);
-
 color:white;
 font-weight:bold;
 cursor:pointer;
-
 }
 
 .submitBtn:disabled{
-
 opacity:0.6;
-
 }
 
 #message{
-
 text-align:center;
 margin-top:12px;
 font-weight:bold;
 font-size:14px;
-
 }
 
 .footer{
-
 text-align:center;
 font-size:12px;
 color:#64748b;
 margin-top:18px;
-
 }
 
 </style>
@@ -212,7 +155,6 @@ margin-top:18px;
 </div>
 
 <label>Nama Petugas</label>
-
 <select id="nama"></select>
 
 <div class="jadwalBox">
@@ -224,32 +166,22 @@ Jadwal Anda Hari Ini : <b id="jadwalPetugas">-</b>
 <div class="statusGrid">
 
 <button class="statusBtn datang"
-onclick="pilihStatus('MASUK')" id="btnMasuk">
-DATANG
-</button>
+onclick="pilihStatus('MASUK')" id="btnMasuk">DATANG</button>
 
 <button class="statusBtn pulang"
-onclick="pilihStatus('PULANG')" id="btnPulang">
-PULANG
-</button>
+onclick="pilihStatus('PULANG')" id="btnPulang">PULANG</button>
 
 <button class="statusBtn sakit"
-onclick="pilihStatus('SAKIT')" id="btnSakit">
-SAKIT
-</button>
+onclick="pilihStatus('SAKIT')" id="btnSakit">SAKIT</button>
 
 <button class="statusBtn izin"
-onclick="pilihStatus('IZIN')" id="btnIzin">
-IZIN
-</button>
+onclick="pilihStatus('IZIN')" id="btnIzin">IZIN</button>
 
 </div>
 
 <button class="submitBtn"
 id="btnSubmit"
-onclick="submitAbsen()">
-Kirim Absensi
-</button>
+onclick="submitAbsen()">Kirim Absensi</button>
 
 <div id="message"></div>
 
@@ -268,8 +200,11 @@ const SIKLUS=["Pagi 1","Pagi 2","Malam 1","Malam 2","Libur"];
 const START_DATE=new Date("2026-01-26");
 
 let petugasList=[];
-
 let statusDipilih="MASUK";
+
+const GEOFENCE_LAT=-6.195765;
+const GEOFENCE_LNG=106.709007;
+const GEOFENCE_RADIUS=150;
 
 function pilihStatus(status){
 
@@ -278,10 +213,37 @@ statusDipilih=status;
 document.querySelectorAll(".statusBtn")
 .forEach(b=>b.classList.remove("active"));
 
-if(status==="MASUK")document.getElementById("btnMasuk").classList.add("active");
-if(status==="PULANG")document.getElementById("btnPulang").classList.add("active");
-if(status==="SAKIT")document.getElementById("btnSakit").classList.add("active");
-if(status==="IZIN")document.getElementById("btnIzin").classList.add("active");
+if(status==="MASUK")btnMasuk.classList.add("active");
+if(status==="PULANG")btnPulang.classList.add("active");
+if(status==="SAKIT")btnSakit.classList.add("active");
+if(status==="IZIN")btnIzin.classList.add("active");
+
+}
+
+function getDistance(lat1,lon1,lat2,lon2){
+
+const R=6371000;
+
+const dLat=(lat2-lat1)*Math.PI/180;
+const dLon=(lon2-lon1)*Math.PI/180;
+
+const a=
+Math.sin(dLat/2)*Math.sin(dLat/2)+
+Math.cos(lat1*Math.PI/180)*
+Math.cos(lat2*Math.PI/180)*
+Math.sin(dLon/2)*Math.sin(dLon/2);
+
+const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+
+return R*c;
+
+}
+
+function checkGeofence(lat,lng){
+
+const distance=getDistance(lat,lng,GEOFENCE_LAT,GEOFENCE_LNG);
+
+return distance<=GEOFENCE_RADIUS;
 
 }
 
@@ -313,7 +275,7 @@ const data=await res.json();
 
 petugasList=data;
 
-const select=document.getElementById("nama");
+const select=nama;
 
 select.innerHTML='<option value="">-- Pilih Nama --</option>';
 
@@ -322,74 +284,73 @@ data.forEach(p=>{
 const option=document.createElement("option");
 
 option.value=p.id;
-
 option.textContent=p.nama;
 
 select.appendChild(option);
 
 });
 
-}catch(e){
+}catch{
 
-document.getElementById("message").innerText="Gagal memuat petugas";
-
-}
+message.innerText="Gagal memuat petugas";
 
 }
 
-document.getElementById("nama").addEventListener("change",function(){
+}
+
+nama.addEventListener("change",function(){
 
 const id=this.value;
 
 const petugas=petugasList.find(p=>p.id==id);
 
 if(!petugas){
-
-document.getElementById("jadwalPetugas").innerText="-";
-
+jadwalPetugas.innerText="-";
 return;
-
 }
 
 if(petugas.is_backup){
-
-document.getElementById("jadwalPetugas").innerText="Backup";
-
+jadwalPetugas.innerText="Backup";
 }else{
-
-document.getElementById("jadwalPetugas").innerText=
-getJadwalPetugas(petugas.siklus_offset);
-
+jadwalPetugas.innerText=getJadwalPetugas(petugas.siklus_offset);
 }
 
 });
 
 async function submitAbsen(){
 
-const btn=document.getElementById("btnSubmit");
+btnSubmit.disabled=true;
 
-btn.disabled=true;
-
-const petugas_id=document.getElementById("nama").value;
-
-const status=statusDipilih;
-
-document.getElementById("message").innerText="Mengirim absensi...";
+const petugas_id=nama.value;
 
 if(!petugas_id){
 
-document.getElementById("message").innerText="Pilih nama dulu";
-
-btn.disabled=false;
-
+message.innerText="Pilih nama dulu";
+btnSubmit.disabled=false;
 return;
 
 }
 
+message.innerText="Mengambil GPS...";
+
+navigator.geolocation.getCurrentPosition(async pos=>{
+
+const lat=pos.coords.latitude;
+const lng=pos.coords.longitude;
+
+if(!checkGeofence(lat,lng)){
+
+message.innerText="Anda berada di luar area absensi";
+btnSubmit.disabled=false;
+return;
+
+}
+
+message.innerText="Mengirim absensi...";
+
 try{
 
 const controller=new AbortController();
-
 const timeout=setTimeout(()=>controller.abort(),8000);
 
 const res=await fetch(BASE_URL+"/absensi",{
@@ -399,11 +360,10 @@ method:"POST",
 headers:{"Content-Type":"application/json"},
 
 body:JSON.stringify({
-
-petugas_id:petugas_id,
-
-status:status
-
+petugas_id,
+status:statusDipilih,
+lat,
+lng
 }),
 
 signal:controller.signal
@@ -416,52 +376,50 @@ const result=await res.json();
 
 if(res.ok){
 
-document.getElementById("message").innerText="Absen berhasil";
+message.innerText="Absen berhasil";
 
-document.getElementById("nama").value="";
-
-document.getElementById("jadwalPetugas").innerText="-";
+nama.value="";
+jadwalPetugas.innerText="-";
 
 }else{
 
-document.getElementById("message").innerText=result.error||"Gagal absen";
+message.innerText=result.error||"Gagal absen";
 
 }
 
-}catch(e){
+}catch{
 
-document.getElementById("message").innerText="Server tidak bisa dihubungi";
-
-}
-
-btn.disabled=false;
+message.innerText="Server tidak bisa dihubungi";
 
 }
 
-function setTanggal(){
+btnSubmit.disabled=false;
 
-const now=new Date();
+},
 
-document.getElementById("tanggal").innerText=
+()=>{
 
-now.toLocaleDateString("id-ID",{
-
-weekday:"long",
-
-day:"numeric",
-
-month:"long",
-
-year:"numeric"
+message.innerText="GPS tidak diizinkan";
+btnSubmit.disabled=false;
 
 });
 
 }
 
+function setTanggal(){
+
+tanggal.innerText=
+new Date().toLocaleDateString("id-ID",{
+weekday:"long",
+day:"numeric",
+month:"long",
+year:"numeric"
+});
+
+}
+
 setTanggal();
-
 loadPetugas();
-
 pilihStatus("MASUK");
 
 </script>
