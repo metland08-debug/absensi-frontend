@@ -165,23 +165,27 @@ Jadwal Anda Hari Ini : <b id="jadwalPetugas">-</b>
 
 <div class="statusGrid">
 
-<button class="statusBtn datang"
-onclick="pilihStatus('MASUK')" id="btnMasuk">DATANG</button>
+<button class="statusBtn datang" onclick="pilihStatus('MASUK')" id="btnMasuk">
+DATANG
+</button>
 
-<button class="statusBtn pulang"
-onclick="pilihStatus('PULANG')" id="btnPulang">PULANG</button>
+<button class="statusBtn pulang" onclick="pilihStatus('PULANG')" id="btnPulang">
+PULANG
+</button>
 
-<button class="statusBtn sakit"
-onclick="pilihStatus('SAKIT')" id="btnSakit">SAKIT</button>
+<button class="statusBtn sakit" onclick="pilihStatus('SAKIT')" id="btnSakit">
+SAKIT
+</button>
 
-<button class="statusBtn izin"
-onclick="pilihStatus('IZIN')" id="btnIzin">IZIN</button>
+<button class="statusBtn izin" onclick="pilihStatus('IZIN')" id="btnIzin">
+IZIN
+</button>
 
 </div>
 
-<button class="submitBtn"
-id="btnSubmit"
-onclick="submitAbsen()">Kirim Absensi</button>
+<button class="submitBtn" id="btnSubmit" onclick="submitAbsen()">
+Kirim Absensi
+</button>
 
 <div id="message"></div>
 
@@ -199,12 +203,12 @@ const SIKLUS=["Pagi 1","Pagi 2","Malam 1","Malam 2","Libur"];
 
 const START_DATE=new Date("2026-01-26");
 
-let petugasList=[];
-let statusDipilih="MASUK";
-
 const GEOFENCE_LAT=-6.195765;
 const GEOFENCE_LNG=106.709007;
 const GEOFENCE_RADIUS=150;
+
+let petugasList=[];
+let statusDipilih="MASUK";
 
 function pilihStatus(status){
 
@@ -220,37 +224,68 @@ if(status==="IZIN")btnIzin.classList.add("active");
 
 }
 
-function getDistance(lat1,lon1,lat2,lon2){
+function updateTombolAbsen(jadwal,isBackup){
 
-const R=6371000;
+const jam=new Date().getHours();
 
-const dLat=(lat2-lat1)*Math.PI/180;
-const dLon=(lon2-lon1)*Math.PI/180;
+btnMasuk.style.display="block";
+btnPulang.style.display="block";
+btnSakit.style.display="block";
+btnIzin.style.display="block";
 
-const a=
-Math.sin(dLat/2)*Math.sin(dLat/2)+
-Math.cos(lat1*Math.PI/180)*
-Math.cos(lat2*Math.PI/180)*
-Math.sin(dLon/2)*Math.sin(dLon/2);
+if(isBackup){
 
-const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-
-return R*c;
+btnSakit.style.display="none";
+btnIzin.style.display="none";
+return;
 
 }
 
-function checkGeofence(lat,lng){
+if(jadwal==="Libur"){
 
-const distance=getDistance(lat,lng,GEOFENCE_LAT,GEOFENCE_LNG);
+btnSakit.style.display="none";
+btnIzin.style.display="none";
+return;
 
-return distance<=GEOFENCE_RADIUS;
+}
+
+if(jadwal==="Pagi 1"||jadwal==="Pagi 2"){
+
+if(jam<14){
+
+btnPulang.style.display="none";
+
+}else{
+
+btnMasuk.style.display="none";
+btnSakit.style.display="none";
+btnIzin.style.display="none";
+
+}
+
+}
+
+if(jadwal==="Malam 1"||jadwal==="Malam 2"){
+
+if(jam<24){
+
+btnPulang.style.display="none";
+
+}else{
+
+btnMasuk.style.display="none";
+btnSakit.style.display="none";
+btnIzin.style.display="none";
+
+}
+
+}
 
 }
 
 function getGlobalIndex(){
 
 const now=new Date();
-
 const diff=Math.floor((now-START_DATE)/(1000*60*60*24));
 
 return diff%5;
@@ -270,7 +305,6 @@ async function loadPetugas(){
 try{
 
 const res=await fetch(BASE_URL+"/petugas");
-
 const data=await res.json();
 
 petugasList=data;
@@ -305,28 +339,72 @@ const id=this.value;
 const petugas=petugasList.find(p=>p.id==id);
 
 if(!petugas){
+
 jadwalPetugas.innerText="-";
 return;
+
 }
 
 if(petugas.is_backup){
+
 jadwalPetugas.innerText="Backup";
+
+updateTombolAbsen("Backup",true);
+
 }else{
-jadwalPetugas.innerText=getJadwalPetugas(petugas.siklus_offset);
+
+const jadwal=getJadwalPetugas(petugas.siklus_offset);
+
+jadwalPetugas.innerText=jadwal;
+
+updateTombolAbsen(jadwal,false);
+
 }
 
 });
 
+function getDistance(lat1,lon1,lat2,lon2){
+
+const R=6371000;
+
+const dLat=(lat2-lat1)*Math.PI/180;
+const dLon=(lon2-lon1)*Math.PI/180;
+
+const a=
+Math.sin(dLat/2)*Math.sin(dLat/2)+
+Math.cos(lat1*Math.PI/180)*
+Math.cos(lat2*Math.PI/180)*
+Math.sin(dLon/2)*Math.sin(dLon/2);
+
+const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+
+return R*c;
+
+}
+
+function setTanggal(){
+
+tanggal.innerText=new Date().toLocaleDateString("id-ID",{
+weekday:"long",
+day:"numeric",
+month:"long",
+year:"numeric"
+});
+
+}
+
 async function submitAbsen(){
 
-btnSubmit.disabled=true;
+const btn=document.getElementById("btnSubmit");
+
+btn.disabled=true;
 
 const petugas_id=nama.value;
 
 if(!petugas_id){
 
 message.innerText="Pilih nama dulu";
-btnSubmit.disabled=false;
+btn.disabled=false;
 return;
 
 }
@@ -338,10 +416,12 @@ navigator.geolocation.getCurrentPosition(async pos=>{
 const lat=pos.coords.latitude;
 const lng=pos.coords.longitude;
 
-if(!checkGeofence(lat,lng)){
+const distance=getDistance(lat,lng,GEOFENCE_LAT,GEOFENCE_LNG);
+
+if(distance>GEOFENCE_RADIUS){
 
 message.innerText="Anda berada di luar area absensi";
-btnSubmit.disabled=false;
+btn.disabled=false;
 return;
 
 }
@@ -393,27 +473,13 @@ message.innerText="Server tidak bisa dihubungi";
 
 }
 
-btnSubmit.disabled=false;
+btn.disabled=false;
 
-},
-
-()=>{
+},()=>{
 
 message.innerText="GPS tidak diizinkan";
-btnSubmit.disabled=false;
+btn.disabled=false;
 
-});
-
-}
-
-function setTanggal(){
-
-tanggal.innerText=
-new Date().toLocaleDateString("id-ID",{
-weekday:"long",
-day:"numeric",
-month:"long",
-year:"numeric"
 });
 
 }
