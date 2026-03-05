@@ -8,26 +8,32 @@
 <title>Absensi Linmas</title>
 
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#1e3c72">
+<meta name="theme-color" content="#0f172a">
 
 <style>
 
 body{
 font-family:Arial, sans-serif;
-background:linear-gradient(135deg,#1e3c72,#2a5298);
 margin:0;
 padding:20px;
 display:flex;
 justify-content:center;
+background:
+linear-gradient(160deg,#0f172a,#1e3a8a,#2563eb);
+min-height:100vh;
 }
 
 .container{
+
 background:white;
 width:100%;
 max-width:420px;
-padding:22px;
-border-radius:14px;
-box-shadow:0 10px 25px rgba(0,0,0,0.2);
+padding:24px;
+border-radius:18px;
+
+box-shadow:
+0 20px 40px rgba(0,0,0,0.35);
+
 }
 
 .logo{
@@ -39,127 +45,154 @@ margin-bottom:10px;
 
 h2{
 text-align:center;
-color:#1e3c72;
-margin:5px 0 15px;
+color:#1e3a8a;
+margin:8px 0 18px;
+font-size:24px;
 }
 
 .infoBox{
-background:#e9edf5;
+
+background:#f1f5f9;
 padding:12px;
 border-radius:10px;
-margin-bottom:15px;
+margin-bottom:18px;
 font-size:14px;
+
 }
 
 .jadwalBox{
-background:#efe4c6;
+
+background:#fef3c7;
 padding:12px;
 border-radius:10px;
-margin-bottom:15px;
+margin-bottom:18px;
 font-weight:bold;
+color:#92400e;
+
 }
 
 label{
+
 font-weight:bold;
 font-size:14px;
+color:#334155;
+
 }
 
 select{
+
 width:100%;
 padding:12px;
 font-size:16px;
-border-radius:8px;
-border:1px solid #ccc;
+border-radius:10px;
+border:1px solid #cbd5e1;
+
 margin-top:6px;
-margin-bottom:15px;
+margin-bottom:18px;
+
 }
 
 .statusGrid{
+
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:10px;
-margin-bottom:15px;
+gap:12px;
+margin-bottom:18px;
+
 }
 
 .statusBtn{
-padding:12px;
-border-radius:8px;
+
+padding:14px;
+border-radius:10px;
 border:none;
 font-weight:bold;
 font-size:14px;
 cursor:pointer;
+transition:0.15s;
+
+}
+
+.statusBtn:hover{
+
+transform:scale(1.02);
+
 }
 
 .datang{
-background:#4caf50;
+
+background:#16a34a;
 color:white;
+
 }
 
 .pulang{
-background:#3f51b5;
+
+background:#2563eb;
 color:white;
+
 }
 
 .sakit{
-background:#f9a825;
+
+background:#f59e0b;
 color:white;
+
 }
 
 .izin{
-background:#757575;
+
+background:#64748b;
 color:white;
+
 }
 
 .statusBtn.active{
-outline:3px solid #00000033;
+
+box-shadow:
+0 0 0 3px rgba(0,0,0,0.15);
+
 }
 
 .submitBtn{
+
 width:100%;
-padding:14px;
+padding:15px;
+
 font-size:16px;
 border:none;
-border-radius:10px;
-background:#365fa3;
+border-radius:12px;
+
+background:linear-gradient(135deg,#2563eb,#1d4ed8);
+
 color:white;
 font-weight:bold;
 cursor:pointer;
+
 }
 
 .submitBtn:disabled{
+
 opacity:0.6;
+
 }
 
 #message{
+
 text-align:center;
-margin-top:10px;
+margin-top:12px;
 font-weight:bold;
-}
-
-hr{
-margin:20px 0;
-}
-
-.riwayatItem{
-padding:10px;
-border-radius:8px;
-margin-bottom:8px;
 font-size:14px;
-}
 
-.masuk{
-background:#d7ead9;
-}
-
-.pulangHist{
-background:#f3d3d3;
 }
 
 .footer{
+
 text-align:center;
 font-size:12px;
-color:#666;
-margin-top:20px;
+color:#64748b;
+margin-top:18px;
+
 }
 
 </style>
@@ -175,8 +208,7 @@ margin-top:20px;
 <h2>Absensi Linmas</h2>
 
 <div class="infoBox">
-📅 <span id="tanggal"></span><br>
-📌 Jadwal Global: <b id="jadwalGlobal"></b>
+📅 <span id="tanggal"></span>
 </div>
 
 <label>Nama Petugas</label>
@@ -184,42 +216,42 @@ margin-top:20px;
 <select id="nama"></select>
 
 <div class="jadwalBox">
-Jadwal Anda Hari Ini: <b id="jadwalPetugas">-</b>
+Jadwal Anda Hari Ini : <b id="jadwalPetugas">-</b>
 </div>
 
 <label>Pilih Absen</label>
 
 <div class="statusGrid">
 
-<button class="statusBtn datang" onclick="pilihStatus('MASUK')" id="btnMasuk">
+<button class="statusBtn datang"
+onclick="pilihStatus('MASUK')" id="btnMasuk">
 DATANG
 </button>
 
-<button class="statusBtn pulang" onclick="pilihStatus('PULANG')" id="btnPulang">
+<button class="statusBtn pulang"
+onclick="pilihStatus('PULANG')" id="btnPulang">
 PULANG
 </button>
 
-<button class="statusBtn sakit" onclick="pilihStatus('SAKIT')" id="btnSakit">
+<button class="statusBtn sakit"
+onclick="pilihStatus('SAKIT')" id="btnSakit">
 SAKIT
 </button>
 
-<button class="statusBtn izin" onclick="pilihStatus('IZIN')" id="btnIzin">
+<button class="statusBtn izin"
+onclick="pilihStatus('IZIN')" id="btnIzin">
 IZIN
 </button>
 
 </div>
 
-<button class="submitBtn" id="btnSubmit" onclick="submitAbsen()">
+<button class="submitBtn"
+id="btnSubmit"
+onclick="submitAbsen()">
 Kirim Absensi
 </button>
 
 <div id="message"></div>
-
-<hr>
-
-<h3>Riwayat Terakhir</h3>
-
-<div id="riwayat"></div>
 
 <div class="footer">
 RT 08 & 09 Perumahan Metland Puri © 2026
@@ -260,14 +292,6 @@ const now=new Date();
 const diff=Math.floor((now-START_DATE)/(1000*60*60*24));
 
 return diff%5;
-
-}
-
-function updateGlobal(){
-
-const index=getGlobalIndex();
-
-document.getElementById("jadwalGlobal").innerText=SIKLUS[index];
 
 }
 
@@ -398,8 +422,6 @@ document.getElementById("nama").value="";
 
 document.getElementById("jadwalPetugas").innerText="-";
 
-loadRiwayat();
-
 }else{
 
 document.getElementById("message").innerText=result.error||"Gagal absen";
@@ -413,34 +435,6 @@ document.getElementById("message").innerText="Server tidak bisa dihubungi";
 }
 
 btn.disabled=false;
-
-}
-
-async function loadRiwayat(){
-
-try{
-
-const res=await fetch(BASE_URL+"/absensi");
-
-const data=await res.json();
-
-const box=document.getElementById("riwayat");
-
-box.innerHTML="";
-
-data.slice(-5).reverse().forEach(r=>{
-
-const div=document.createElement("div");
-
-div.className="riwayatItem "+(r.status==="MASUK"?"masuk":"pulangHist");
-
-div.innerText=r.nama+" - "+r.tanggal+" "+r.jam+" - "+r.status;
-
-box.appendChild(div);
-
-});
-
-}catch(e){}
 
 }
 
@@ -466,11 +460,7 @@ year:"numeric"
 
 setTanggal();
 
-updateGlobal();
-
 loadPetugas();
-
-loadRiwayat();
 
 pilihStatus("MASUK");
 
